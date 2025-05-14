@@ -16,15 +16,22 @@
 - [x] Corrigir erro no scanner QR em dispositivos móveis (e.on is not a function)
 - [x] Resolver problema de visualização do código QR 
 - [x] Substituir imagem SVG por JPG para maior compatibilidade
-- [x] Preparar build para deploy no Vercel
+- [x] Adicionar biblioteca Mind-AR via CDN para implementação de AR sem instalação local
 
 # Concluídas
 
 - [x] Configurar pasta .cursor/rules
-- [x] Configurar estrutura base do projeto Next.js
-- [x] Implementar componente QRScanner com acesso à câmara
-- [x] Criar componente ModelViewer para visualização de Gaussian Splat
-- [x] Implementar página de detalhes do produto
-- [x] Integrar o modelo 3D existente (Gelado 3D_SUPERSPLAT.compressed.ply)
-- [x] Corrigir erros de TypeScript e compatibilidade
-- [x] Adicionar suporte a múltiplos modelos 3D
+- [x] Configurar rastreamento de eventos de utilizador
+- [x] Adicionar suporte para diferentes modelos 3D
+- [x] Criar página de visualização do produto
+- [x] Implementar página inicial com scanner QR
+- [x] Criar componente de visualização 3D usando Gaussian Splats
+- [x] Adicionar modo de baixo desempenho para dispositivos menos potentes
+- [x] Implementar controles de câmara (zoom, rotação)
+- [x] Melhorar interface responsiva
+
+# Notas
+
+- A implementação do AR usando Mind-AR foi feita com scripts CDN para evitar problemas de instalação de dependências locais
+- Para o tracking de imagem AR, é necessário gerar um arquivo `.mind` a partir da imagem de rastreamento usando o MindAR Image Compiler
+- Usar o código QR como imagem de tracking pode não ser ideal devido à baixa quantidade de detalhes visuais - considerar imagens com mais características distintas
