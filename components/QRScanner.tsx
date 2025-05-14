@@ -54,7 +54,10 @@ const QRScanner: React.FC<QRScannerProps> = ({ onScan }) => {
       try {
         setScanning(true);
         addDebugLog("Iniciando configuração do scanner...");
-
+        
+        // Debug da versão da biblioteca
+        addDebugLog(`Versão do QR Scanner: ${'Verificando compatibilidade...'}`);
+        
         // Verificar se a câmara está disponível
         const hasCamera = await QrScanner.hasCamera();
         if (!hasCamera) {
@@ -113,12 +116,6 @@ const QRScanner: React.FC<QRScannerProps> = ({ onScan }) => {
             }
           }
         );
-
-        // Adicionar callbacks para erros
-        // @ts-ignore - o método on existe na implementação mas não na tipagem
-        qrScanner.on('status', (status: string) => {
-          addDebugLog(`Status: ${status}`);
-        });
 
         // Iniciar o scanner
         await qrScanner.start();

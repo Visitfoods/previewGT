@@ -1,12 +1,12 @@
 # Como Gerar o Arquivo de Tracking para a Imagem
 
-Para transformar a imagem `qrcode.svg` em um arquivo de tracking `.mind`, siga estas instruções:
+Para transformar a imagem `qrcode.jpg` em um arquivo de tracking `.mind`, siga estas instruções:
 
 ## Método Online (Recomendado)
 
 1. Acesse o [MindAR Image Compiler](https://hiukim.github.io/mind-ar-js-doc/tools/compile/)
 
-2. Clique em "Choose Files" e selecione a imagem `public/imagetrace/qrcode.svg`
+2. Clique em "Choose Files" e selecione a imagem `public/imagetrace/qrcode.jpg`
 
 3. Clique em "Compile" e aguarde o processamento (pode levar alguns segundos)
 
@@ -16,7 +16,7 @@ Para transformar a imagem `qrcode.svg` em um arquivo de tracking `.mind`, siga e
 
 ## Arquivos Necessários
 
-- Imagem de origem: `public/imagetrace/qrcode.svg`
+- Imagem de origem: `public/imagetrace/qrcode.jpg`
 - Arquivo de destino: `public/targets/target.mind`
 
 ## Observações

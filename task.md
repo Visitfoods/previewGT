@@ -12,7 +12,11 @@
 - [x] Optimizar desempenho em dispositivos de baixa capacidade
 - [x] Implementar análise de métricas de utilização
 - [x] Testar a aplicação em dispositivos móveis reais
-- [ ] Resolver problemas de compatibilidade com iOS
+- [x] Resolver problemas de compatibilidade com iOS
+- [x] Corrigir erro no scanner QR em dispositivos móveis (e.on is not a function)
+- [x] Resolver problema de visualização do código QR 
+- [x] Substituir imagem SVG por JPG para maior compatibilidade
+- [x] Preparar build para deploy no Vercel
 
 # Concluídas
 
