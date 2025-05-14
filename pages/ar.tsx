@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { defaultModel } from '../Models/models';
 import Script from 'next/script';
 import Head from 'next/head';
 
@@ -63,6 +62,7 @@ const ARPage: React.FC = () => {
           renderer="colorManagement: true; physicallyCorrectLights: true"
           vr-mode-ui="enabled: false" 
           device-orientation-permission-ui="enabled: false"
+          loading-screen="enabled: false"
           style="width: 100%; height: 100%; position: absolute; top: 0; left: 0;"
         >
           <a-assets>
@@ -75,7 +75,7 @@ const ARPage: React.FC = () => {
           <a-entity mindar-image-target="targetIndex: 0">
             <a-plane src="#card" position="0 0 0" height="0.552" width="1" rotation="0 0 0"></a-plane>
             
-            <!-- Usar um cubo colorido como fallback caso o modelo não carregue -->
+            <!-- Usar um cubo colorido como fallback -->
             <a-box position="0 0.2 0.1" color="#4CC3D9" rotation="0 45 0" scale="0.2 0.2 0.2" animation="property: rotation; to: 0 360 0; loop: true; dur: 10000; easing: linear"></a-box>
           </a-entity>
         </a-scene>
@@ -83,20 +83,21 @@ const ARPage: React.FC = () => {
       
       container.appendChild(arScene);
       
-      // Registrar manipuladores de eventos
-      if (window.addEventListener) {
-        window.addEventListener('camera-init', () => {
-          console.log('Câmara AR inicializada');
-        });
-        
-        window.addEventListener('target-found', () => {
-          console.log('Target AR encontrado');
-        });
-        
-        window.addEventListener('target-lost', () => {
-          console.log('Target AR perdido');
-        });
-      }
+      // Usar um timeout para solicitar permissão da câmara explicitamente
+      setTimeout(() => {
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+          navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+            .then(function(stream) {
+              console.log("Permissão de câmara concedida");
+              // O stream será usado automaticamente pelo A-Frame
+              stream.getTracks().forEach(track => track.stop()); // Parar o stream, pois A-Frame terá o seu próprio
+            })
+            .catch(function(err) {
+              console.error("Erro ao obter acesso à câmara:", err);
+              setError(`Erro de câmara: ${err.message}. Verifique as permissões.`);
+            });
+        }
+      }, 500);
       
       setArStarted(true);
     } catch (error) {
@@ -110,7 +111,9 @@ const ARPage: React.FC = () => {
   return (
     <>
       <Head>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="mobile-web-app-capable" content="yes" />
       </Head>
 
       <div className="container">
@@ -134,13 +137,11 @@ const ARPage: React.FC = () => {
           <Link href="/">
             <span className="back-link">← Voltar</span>
           </Link>
-          <h1>Gelatomania AR</h1>
+          <h1>Realidade Aumentada</h1>
         </header>
 
         <main>
           <div className="ar-container">
-            <h2>Visualização em Realidade Aumentada</h2>
-            
             {error && (
               <div className="error-banner">
                 {error}
@@ -153,24 +154,17 @@ const ARPage: React.FC = () => {
               </div>
             )}
             
-            <p className="instructions">
-              Esta experiência AR usa tracking de imagem para mostrar um modelo 3D sobre a imagem de referência.
-            </p>
-            
-            <div className="reference-images">
-              <div className="reference-image-container">
-                <h3>Imagem de Referência:</h3>
-                <Image 
-                  src="/imagetrace/card.png"
-                  alt="Imagem para tracking AR"
-                  width={200}
-                  height={120}
-                  className="reference-image"
-                  onClick={() => setShowImageFullscreen(true)}
-                />
-                <div className="image-caption">Clique na imagem para ampliar</div>
-                <p className="note">Aponte a câmara para esta imagem depois de iniciar a AR</p>
-              </div>
+            <div className="reference-image-container">
+              <h3>Imagem de Referência:</h3>
+              <Image 
+                src="/imagetrace/card.png"
+                alt="Imagem para tracking AR"
+                width={200}
+                height={120}
+                onClick={() => setShowImageFullscreen(true)}
+                className="reference-image"
+              />
+              <p className="image-caption">Clique para ampliar • Use esta imagem para o AR</p>
             </div>
 
             <div className="button-container">
@@ -180,7 +174,7 @@ const ARPage: React.FC = () => {
                 disabled={scriptsLoaded < totalScripts || arStarted}
               >
                 {scriptsLoaded < totalScripts 
-                  ? `A carregar scripts... (${scriptsLoaded}/${totalScripts})` 
+                  ? `A carregar (${scriptsLoaded}/${totalScripts})` 
                   : arStarted 
                     ? 'AR em execução' 
                     : 'Iniciar AR'}
@@ -196,12 +190,10 @@ const ARPage: React.FC = () => {
               )}
             </div>
             
-            <div id="ar-container" className="ar-placeholder">
+            <div id="ar-container" className="ar-view">
               {!arStarted && (
                 <div className="ar-message">
-                  <h3>Realidade Aumentada com Tracking de Imagem</h3>
-                  <p>Clique no botão acima para iniciar a experiência AR.</p>
-                  <p>Depois de iniciar, aponte a câmara para a imagem de referência.</p>
+                  <p>Clique em "Iniciar AR" e aponte a câmara para a imagem acima.</p>
                 </div>
               )}
             </div>
@@ -218,10 +210,6 @@ const ARPage: React.FC = () => {
                   className="fullscreen-image"
                 />
                 <div className="close-button">×</div>
-                <div className="fullscreen-caption">
-                  <p>Imprima esta imagem ou visualize-a em outro dispositivo para usar como marcador AR.</p>
-                  <p>Clique em qualquer lugar para fechar</p>
-                </div>
               </div>
             </div>
           )}
@@ -229,28 +217,25 @@ const ARPage: React.FC = () => {
           <div className="info-box">
             <h3>Como usar:</h3>
             <ol>
-              <li>Clique no botão "Iniciar AR" acima</li>
-              <li>Permita o acesso à câmara quando solicitado</li>
+              <li>Clique no botão "Iniciar AR"</li>
+              <li>Permita o acesso à câmara</li>
               <li>Aponte a câmara para a imagem de referência</li>
-              <li>Mantenha a câmara estável enquanto o modelo carrega</li>
-              <li>O modelo 3D aparecerá sobre a imagem de referência</li>
+              <li>Mantenha a câmara estável para melhor resultado</li>
             </ol>
-            <p className="note">Nota: Esta funcionalidade requer uma câmara funcional e boa iluminação. Funciona melhor em dispositivos móveis modernos.</p>
             
             <div className="troubleshooting">
               <h3>Resolução de problemas:</h3>
               <ul>
-                <li>Se a câmara não ligar, verifique as permissões do navegador</li>
-                <li>Se o modelo não aparecer, tente reiniciar a AR</li>
-                <li>Em dispositivos iOS, use o Safari para melhor compatibilidade</li>
-                <li>Certifique-se de que há boa iluminação na imagem de referência</li>
+                <li>Se a câmara não ligar, verifique as permissões</li>
+                <li>Em dispositivos iOS, use o Safari</li>
+                <li>Certifique-se de que há boa iluminação</li>
               </ul>
             </div>
           </div>
         </main>
 
         <footer>
-          <p>&copy; 2025 Gelatomania. Todos os direitos reservados.</p>
+          <p>&copy; 2025 Gelatomania AR</p>
         </footer>
 
         <style jsx>{`
@@ -258,32 +243,30 @@ const ARPage: React.FC = () => {
             display: flex;
             flex-direction: column;
             min-height: 100vh;
-            padding: 20px;
+            padding: 15px;
+            max-width: 800px;
+            margin: 0 auto;
           }
           
           header {
             display: flex;
             align-items: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
           }
           
           .back-link {
-            margin-right: 20px;
+            margin-right: 15px;
             color: #4CAF50;
-            text-decoration: none;
             font-weight: bold;
             cursor: pointer;
+            display: flex;
+            align-items: center;
           }
           
           h1 {
-            font-size: 24px;
+            font-size: 22px;
             color: #4CAF50;
-          }
-          
-          h2 {
-            font-size: 20px;
-            margin-bottom: 15px;
-            color: #333;
+            margin: 0;
           }
           
           h3 {
@@ -297,7 +280,7 @@ const ARPage: React.FC = () => {
             color: #d32f2f;
             padding: 12px;
             border-radius: 8px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             position: relative;
             padding-right: 40px;
           }
@@ -313,28 +296,12 @@ const ARPage: React.FC = () => {
             cursor: pointer;
           }
           
-          .instructions {
-            margin-bottom: 20px;
-            font-size: 16px;
-            color: #555;
-          }
-          
           main {
             flex: 1;
           }
           
           .ar-container {
             width: 100%;
-            max-width: 800px;
-            margin: 0 auto;
-          }
-          
-          .reference-images {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 20px;
-            margin-bottom: 20px;
           }
           
           .reference-image-container {
@@ -342,19 +309,13 @@ const ARPage: React.FC = () => {
             background-color: #f5f5f5;
             padding: 15px;
             border-radius: 8px;
-            width: 100%;
-            max-width: 300px;
+            margin-bottom: 15px;
           }
           
           .reference-image {
             cursor: pointer;
             border: 2px solid #4CAF50;
             border-radius: 4px;
-            transition: transform 0.2s;
-          }
-          
-          .reference-image:hover {
-            transform: scale(1.05);
           }
           
           .image-caption {
@@ -365,26 +326,28 @@ const ARPage: React.FC = () => {
           
           .button-container {
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-bottom: 20px;
+            gap: 10px;
+            margin-bottom: 15px;
           }
           
           .start-ar-button, .stop-ar-button {
-            display: block;
-            padding: 12px 24px;
-            background-color: #4CAF50;
-            color: white;
+            padding: 12px;
             border: none;
             border-radius: 4px;
             font-size: 16px;
+            font-weight: bold;
             cursor: pointer;
-            margin-bottom: 10px;
-            min-width: 200px;
+            flex: 1;
+          }
+          
+          .start-ar-button {
+            background-color: #4CAF50;
+            color: white;
           }
           
           .stop-ar-button {
             background-color: #f44336;
+            color: white;
           }
           
           .start-ar-button:disabled {
@@ -392,38 +355,27 @@ const ARPage: React.FC = () => {
             cursor: not-allowed;
           }
           
-          .start-ar-button:hover:not(:disabled) {
-            background-color: #45a049;
-          }
-          
-          .stop-ar-button:hover {
-            background-color: #d32f2f;
-          }
-          
-          .ar-placeholder {
+          .ar-view {
             width: 100%;
-            height: 60vh;
-            min-height: 400px;
+            height: 50vh;
+            min-height: 300px;
             background-color: #f5f5f5;
             border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             position: relative;
             overflow: hidden;
           }
           
           .ar-message {
-            text-align: center;
-            padding: 20px;
-            background-color: rgba(255, 255, 255, 0.8);
-            border-radius: 8px;
-            z-index: 1;
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            max-width: 80%;
           }
           
           .fullscreen-overlay {
@@ -454,36 +406,24 @@ const ARPage: React.FC = () => {
           
           .close-button {
             position: absolute;
-            top: -20px;
-            right: -20px;
-            width: 40px;
-            height: 40px;
+            top: -15px;
+            right: -15px;
+            width: 30px;
+            height: 30px;
             background-color: #f44336;
             color: white;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: 20px;
             cursor: pointer;
-          }
-          
-          .fullscreen-caption {
-            color: white;
-            text-align: center;
-            margin-top: 10px;
           }
           
           .info-box {
             background-color: #f5f5f5;
-            padding: 20px;
+            padding: 15px;
             border-radius: 8px;
-            margin-top: 20px;
-          }
-          
-          .info-box h3 {
-            margin-bottom: 10px;
-            color: #333;
           }
           
           .info-box ol, .info-box ul {
@@ -495,14 +435,8 @@ const ARPage: React.FC = () => {
             margin-bottom: 8px;
           }
           
-          .note {
-            font-style: italic;
-            color: #666;
-            margin-top: 10px;
-          }
-          
           .troubleshooting {
-            margin-top: 20px;
+            margin-top: 15px;
             padding-top: 15px;
             border-top: 1px solid #ddd;
           }
@@ -515,20 +449,10 @@ const ARPage: React.FC = () => {
           }
           
           footer {
-            margin-top: 40px;
+            margin-top: 20px;
             text-align: center;
             font-size: 14px;
             color: #666;
-          }
-          
-          @media (max-width: 768px) {
-            .ar-placeholder {
-              height: 50vh;
-            }
-            
-            .reference-image-container {
-              max-width: 100%;
-            }
           }
           
           /* Estilos para A-Frame */

@@ -1,50 +1,33 @@
-# Backlog
+# Plano de Ação Simplificado - Gelatomania AR
 
-- [ ] Implementar carregamento progressivo para modelos grandes
-- [ ] Adicionar animações e efeitos visuais ao modelo 3D
-- [ ] Implementar modo offline com Service Workers
-- [x] Adicionar suporte para upload de imagem como alternativa à câmara
-- [ ] Adicionar suporte para partilha nas redes sociais
+## Objetivo
+Criar uma webapp simples e funcional com visualização 3D e realidade aumentada (AR).
 
-# Em curso
+## Funcionalidades Essenciais
+- [x] Visualização direta do modelo 3D
+- [x] Experiência AR usando Mind-AR
+- [x] Interface minimalista e intuitiva
 
-- [x] Implementar visualização em realidade aumentada (AR) com tracking de imagem
-- [x] Optimizar desempenho em dispositivos de baixa capacidade
-- [x] Implementar análise de métricas de utilização
-- [x] Testar a aplicação em dispositivos móveis reais
-- [x] Resolver problemas de compatibilidade com iOS
-- [x] Corrigir erro no scanner QR em dispositivos móveis (e.on is not a function)
-- [x] Resolver problema de visualização do código QR 
-- [x] Substituir imagem SVG por JPG para maior compatibilidade
-- [x] Adicionar biblioteca Mind-AR via CDN para implementação de AR sem instalação local
-- [x] Corrigir erro "e.loadAsync is not a function" no carregamento do modelo 3D
-- [x] Implementar fallback para modelos 3D quando não for possível carregar PLY
-- [x] Adicionar botão de acesso direto à experiência AR
-- [x] Atualizar imagem de referência para tracking AR com alta qualidade
-- [x] Atualizar arquivo target.mind para corresponder à nova imagem de referência
-- [x] Corrigir erro de compilação "Property 'load' does not exist on type 'SplatLoader'"
-- [x] Corrigir problema com a visualização da câmara no QR Scanner
-- [x] Melhorar interface da página principal com acesso direto às funcionalidades
+## Tarefas Pendentes
+- [x] Simplificar a interface para focar apenas no essencial
+- [x] Remover funcionalidades desnecessárias
+- [x] Garantir que o AR e visualização 3D funcionem em dispositivos móveis
 
-# Concluídas
+## Tarefas Concluídas
+- [x] Implementar visualização 3D com modelo PLY
+- [x] Adicionar fallback para quando o modelo 3D não carregar
+- [x] Implementar AR com Mind-AR
+- [x] Configurar imagem de referência para tracking AR
+- [x] Simplificar a página AR para melhor desempenho
+- [x] Criar uma página de visualização 3D dedicada
+- [x] Melhorar a acessibilidade e compatibilidade com dispositivos móveis
 
-- [x] Configurar pasta .cursor/rules
-- [x] Configurar rastreamento de eventos de utilizador
-- [x] Adicionar suporte para diferentes modelos 3D
-- [x] Criar página de visualização do produto
-- [x] Implementar página inicial com scanner QR
-- [x] Criar componente de visualização 3D usando Gaussian Splats
-- [x] Adicionar modo de baixo desempenho para dispositivos menos potentes
-- [x] Implementar controles de câmara (zoom, rotação)
-- [x] Melhorar interface responsiva
+## Estrutura da Aplicação
+- Página inicial com acesso direto ao AR
+- Página AR para experiência de realidade aumentada
+- Página de visualização 3D para ver o modelo isoladamente
 
-# Notas
-
-- A implementação do AR usando Mind-AR foi feita com scripts CDN para evitar problemas de instalação de dependências locais
-- Para o tracking de imagem AR, foi utilizado o arquivo `.mind` correspondente à imagem card.png obtida do repositório oficial do Mind-AR
-- Foi implementado um sistema de fallback para casos onde o carregamento do modelo 3D PLY falhe, mostrando um objeto 3D animado
-- A página AR agora contém instruções de resolução de problemas para ajudar os utilizadores em caso de dificuldades
-- A correção do erro "e.loadAsync is not a function" foi implementada verificando a existência da função antes de chamá-la
-- O problema de compilação relacionado ao método 'load' inexistente foi resolvido usando uma abordagem completamente diferente com um sistema de fallback visualmente atraente
-- A câmara agora é solicitada explicitamente com getUserMedia antes de iniciar o QR Scanner para garantir compatibilidade com dispositivos móveis
-- A página principal foi redesenhada para facilitar a navegação e proporcionar acesso direto às funcionalidades de AR e visualização 3D
+## Notas
+- Manter foco no funcionamento adequado em dispositivos móveis
+- Priorizar simplicidade e intuitividade na interface
+- Garantir carregamento rápido dos modelos 3D

@@ -1,47 +1,16 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/router';
-import QRScanner from '../components/QRScanner';
 
 const Home: React.FC = () => {
-  const router = useRouter();
-  const [scanning, setScanning] = useState(false);
-
-  const handleScan = (result: string) => {
-    if (!result) return;
-
-    // Assumindo que o resultado do QR code é o ID do produto
-    // Em uma aplicação real, poderia ser uma URL completa ou outro formato
-    const productId = result;
-    
-    console.log('QR Code detetado:', productId);
-    
-    // Verificação adicional para debug
-    const targetUrl = `/produto/${productId}`;
-    console.log('Navegando para:', targetUrl);
-    
-    setScanning(false);
-    
-    // Pequeno atraso para garantir que o console.log apareça
-    setTimeout(() => {
-      // Navegar para a página do produto
-      router.push(targetUrl);
-    }, 100);
-  };
-
-  const toggleScanner = () => {
-    setScanning(!scanning);
-  };
-
   return (
     <>
       <Head>
         <title>Gelatomania AR</title>
-        <meta name="description" content="Visualize modelos 3D de gelados em realidade aumentada" />
+        <meta name="description" content="Visualize gelados em realidade aumentada" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="mobile-web-app-capable" content="yes" />
@@ -50,85 +19,47 @@ const Home: React.FC = () => {
       <div className="container">
         <header>
           <h1 className="title">Gelatomania AR</h1>
+          <p className="subtitle">Visualize gelados em realidade aumentada</p>
         </header>
 
         <main>
-          {!scanning ? (
-            <div className="welcome-container">
-              <h2>Visualize gelados em 3D</h2>
-              <p>Aponte a câmara para um código QR de gelado para ver o modelo 3D</p>
-              
-              <div className="feature-section">
-                <div className="feature-card">
-                  <Image 
-                    src="/imagetrace/card.png"
-                    alt="Exemplo de código QR"
-                    width={100}
-                    height={100}
-                    className="qr-example-image"
-                  />
-                  <h3>Leia o código QR</h3>
-                  <p>Use a câmara do seu dispositivo para escanear o código QR</p>
-                </div>
-                
-                <div className="feature-card">
-                  <div className="model-placeholder">3D</div>
-                  <h3>Visualize em 3D</h3>
-                  <p>Veja modelos 3D realistas de gelados</p>
-                </div>
-                
-                <div className="feature-card">
-                  <div className="ar-placeholder">AR</div>
-                  <h3>Experiência AR</h3>
-                  <p>Experimente o gelado em realidade aumentada</p>
-                </div>
-              </div>
-              
-              <div className="buttons-container">
-                <button onClick={toggleScanner} className="scan-button">
-                  Escanear código QR
-                </button>
-                
-                <Link href="/ar" className="ar-button">
-                  Ir para AR
+          <div className="card">
+            <div className="image-container">
+              <Image 
+                src="/imagetrace/card.png"
+                alt="Imagem de referência para AR"
+                width={220}
+                height={132}
+                className="reference-image"
+              />
+            </div>
+            
+            <div className="info">
+              <p>Use esta imagem para ver o gelado em realidade aumentada</p>
+              <div className="buttons">
+                <Link href="/ar" className="button ar-button">
+                  Iniciar Experiência AR
                 </Link>
-                
-                <Link href="/produto/gelato-3d" className="model-button">
-                  Ver modelo 3D diretamente
+                <Link href="/produto/gelato-3d" className="button view-button">
+                  Ver Modelo 3D
                 </Link>
               </div>
-              
-              <div className="tracking-image-container">
-                <h3>Imagem para AR tracking:</h3>
-                <Image 
-                  src="/imagetrace/card.png"
-                  alt="Imagem para tracking AR"
-                  width={200}
-                  height={200}
-                  className="tracking-image-preview"
-                />
-                <p>
-                  Use esta imagem para a experiência de AR, ou visite a{' '}
-                  <Link href="/ar" className="ar-page-link">
-                    página de AR
-                  </Link>
-                  {' '}para mais detalhes.
-                </p>
-              </div>
             </div>
-          ) : (
-            <div className="scanner-container">
-              <h2>Escanear código QR</h2>
-              <QRScanner onScan={handleScan} />
-              <button onClick={toggleScanner} className="cancel-button">
-                Cancelar
-              </button>
-            </div>
-          )}
+          </div>
+          
+          <div className="instructions">
+            <h2>Como utilizar:</h2>
+            <ol>
+              <li>Clique em "Iniciar Experiência AR"</li>
+              <li>Permita o acesso à câmara quando solicitado</li>
+              <li>Aponte a câmara para a imagem acima</li>
+              <li>O modelo 3D do gelado aparecerá sobre a imagem</li>
+            </ol>
+          </div>
         </main>
 
         <footer>
-          <p>&copy; 2025 Gelatomania. Todos os direitos reservados.</p>
+          <p>&copy; 2025 Gelatomania AR</p>
         </footer>
       </div>
 
@@ -138,192 +69,127 @@ const Home: React.FC = () => {
           display: flex;
           flex-direction: column;
           padding: 20px;
-          max-width: 1000px;
+          max-width: 500px;
           margin: 0 auto;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
         }
         
         header {
-          margin-bottom: 30px;
           text-align: center;
+          margin-bottom: 30px;
         }
         
         .title {
           color: #4CAF50;
           font-size: 32px;
           margin: 0;
+          margin-bottom: 5px;
+        }
+        
+        .subtitle {
+          color: #555;
+          margin: 0;
+          font-size: 16px;
         }
         
         main {
           flex: 1;
-        }
-        
-        .welcome-container {
-          text-align: center;
-        }
-        
-        h2 {
-          font-size: 24px;
-          margin-bottom: 15px;
-          color: #333;
-        }
-        
-        p {
-          color: #666;
-          margin-bottom: 20px;
-        }
-        
-        .feature-section {
-          display: flex;
-          flex-wrap: wrap;
-          justify-content: center;
-          gap: 20px;
-          margin: 30px 0;
-        }
-        
-        .feature-card {
-          background-color: #f9f9f9;
-          border-radius: 10px;
-          padding: 20px;
-          width: 220px;
-          box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
-          transition: transform 0.2s ease;
-        }
-        
-        .feature-card:hover {
-          transform: translateY(-5px);
-        }
-        
-        .feature-card h3 {
-          margin: 15px 0 10px;
-          color: #333;
-        }
-        
-        .feature-card p {
-          font-size: 14px;
-          color: #666;
-          margin: 0;
-        }
-        
-        .qr-example-image {
-          border-radius: 5px;
-        }
-        
-        .model-placeholder, .ar-placeholder {
-          height: 100px;
-          background-color: #e0f2e0;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 24px;
-          font-weight: bold;
-          color: #4CAF50;
-          border-radius: 5px;
-        }
-        
-        .buttons-container {
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 10px;
-          margin-bottom: 30px;
         }
         
-        .scan-button, .ar-button, .model-button {
-          background-color: #4CAF50;
-          color: white;
-          border: none;
-          padding: 12px 24px;
+        .card {
+          background-color: white;
+          border-radius: 12px;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+          overflow: hidden;
+          width: 100%;
+          margin-bottom: 25px;
+        }
+        
+        .image-container {
+          padding: 20px;
+          background-color: #f8f8f8;
+          display: flex;
+          justify-content: center;
+        }
+        
+        .reference-image {
+          border: 2px solid #4CAF50;
+          border-radius: 8px;
+        }
+        
+        .info {
+          padding: 20px;
+          text-align: center;
+        }
+        
+        .info p {
+          color: #555;
+          margin-bottom: 20px;
           font-size: 16px;
-          border-radius: 5px;
-          cursor: pointer;
-          width: 250px;
+        }
+        
+        .buttons {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+        
+        .button {
+          display: block;
+          padding: 14px;
+          border-radius: 6px;
+          font-weight: bold;
           text-align: center;
           text-decoration: none;
-          transition: background-color 0.2s ease;
+          transition: transform 0.2s, background-color 0.2s;
         }
         
-        .scan-button:hover {
-          background-color: #45a049;
+        .button:active {
+          transform: translateY(1px);
         }
         
         .ar-button {
-          background-color: #2196F3;
-        }
-        
-        .ar-button:hover {
-          background-color: #1e88e5;
-        }
-        
-        .model-button {
-          background-color: #9c27b0;
-        }
-        
-        .model-button:hover {
-          background-color: #8e24aa;
-        }
-        
-        .tracking-image-container {
-          margin-top: 40px;
-          padding: 20px;
-          background-color: #f5f5f5;
-          border-radius: 10px;
-        }
-        
-        .tracking-image-preview {
-          border: 2px solid #4CAF50;
-          border-radius: 8px;
-          margin: 15px 0;
-        }
-        
-        .ar-page-link {
-          color: #4CAF50;
-          text-decoration: none;
-          font-weight: bold;
-        }
-        
-        .ar-page-link:hover {
-          text-decoration: underline;
-        }
-        
-        .scanner-container {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          max-width: 500px;
-          margin: 0 auto;
-        }
-        
-        .cancel-button {
-          background-color: #f44336;
+          background-color: #4CAF50;
           color: white;
-          border: none;
-          padding: 10px 20px;
-          border-radius: 5px;
-          cursor: pointer;
-          margin-top: 20px;
         }
         
-        .cancel-button:hover {
-          background-color: #e53935;
+        .view-button {
+          background-color: #2196F3;
+          color: white;
+        }
+        
+        .instructions {
+          background-color: #f5f5f5;
+          border-radius: 12px;
+          padding: 20px;
+          width: 100%;
+        }
+        
+        .instructions h2 {
+          color: #333;
+          font-size: 18px;
+          margin-top: 0;
+          margin-bottom: 15px;
+        }
+        
+        .instructions ol {
+          margin: 0;
+          padding-left: 20px;
+        }
+        
+        .instructions li {
+          margin-bottom: 10px;
+          color: #555;
         }
         
         footer {
-          margin-top: 40px;
+          margin-top: 30px;
           text-align: center;
-          color: #666;
+          color: #888;
           font-size: 14px;
-        }
-        
-        @media (max-width: 768px) {
-          .feature-section {
-            flex-direction: column;
-            align-items: center;
-          }
-          
-          .feature-card {
-            width: 100%;
-            max-width: 300px;
-          }
         }
       `}</style>
     </>
