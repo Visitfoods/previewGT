@@ -26,10 +26,10 @@ const Home: React.FC = () => {
           <div className="card">
             <div className="image-container">
               <Image 
-                src="/imagetrace/card.png"
+                src="/imagetrace/qrcode.jpg"
                 alt="Imagem de referência para AR"
-                width={220}
-                height={132}
+                width={200}
+                height={200}
                 className="reference-image"
               />
             </div>

@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import Script from 'next/script';
 import Head from 'next/head';
 
 const ARPage: React.FC = () => {
@@ -22,6 +21,50 @@ const ARPage: React.FC = () => {
     };
   }, [arStarted]);
 
+  // Função para carregar scripts manualmente
+  useEffect(() => {
+    const loadScripts = async () => {
+      try {
+        // Carregar A-Frame primeiro
+        await loadScript("https://aframe.io/releases/1.3.0/aframe.min.js");
+        setScriptsLoaded(prev => prev + 1);
+        
+        // Depois MindAR core
+        await loadScript("https://cdn.jsdelivr.net/npm/mind-ar@1.2.1/dist/mindar-image.prod.js");
+        setScriptsLoaded(prev => prev + 1);
+        
+        // Por fim, MindAR para A-Frame
+        await loadScript("https://cdn.jsdelivr.net/npm/mind-ar@1.2.1/dist/mindar-image-aframe.prod.js");
+        setScriptsLoaded(prev => prev + 1);
+      } catch (err) {
+        console.error("Erro ao carregar scripts:", err);
+        setError("Falha ao carregar scripts AR necessários");
+      }
+    };
+    
+    loadScripts();
+  }, []);
+
+  const loadScript = (src: string): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = src;
+      script.async = true;
+      
+      script.onload = () => {
+        console.log(`Script carregado: ${src}`);
+        resolve();
+      };
+      
+      script.onerror = () => {
+        console.error(`Erro ao carregar script: ${src}`);
+        reject(new Error(`Falha ao carregar ${src}`));
+      };
+      
+      document.head.appendChild(script);
+    });
+  };
+
   const cleanupAR = () => {
     const container = document.getElementById('ar-container');
     if (container) {
@@ -29,14 +72,6 @@ const ARPage: React.FC = () => {
     }
     setArStarted(false);
     setError(null);
-  };
-
-  const handleScriptLoad = () => {
-    setScriptsLoaded(prev => {
-      const newCount = prev + 1;
-      console.log(`Script carregado (${newCount}/${totalScripts})`);
-      return newCount;
-    });
   };
 
   const startAR = () => {
@@ -66,7 +101,7 @@ const ARPage: React.FC = () => {
           style="width: 100%; height: 100%; position: absolute; top: 0; left: 0;"
         >
           <a-assets>
-            <img id="card" src="/imagetrace/card.png" />
+            <img id="card" src="/imagetrace/qrcode.jpg" />
             <a-asset-item id="gelato-model" src="/models/3dgelato.ply"></a-asset-item>
           </a-assets>
 
@@ -111,28 +146,13 @@ const ARPage: React.FC = () => {
   return (
     <>
       <Head>
+        <title>Gelatomania AR</title>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="mobile-web-app-capable" content="yes" />
       </Head>
 
       <div className="container">
-        <Script 
-          src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.1/dist/mindar-image.prod.js"
-          onLoad={handleScriptLoad}
-          strategy="beforeInteractive"
-        />
-        <Script 
-          src="https://aframe.io/releases/1.3.0/aframe.min.js"
-          onLoad={handleScriptLoad}
-          strategy="beforeInteractive"
-        />
-        <Script 
-          src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.1/dist/mindar-image-aframe.prod.js"
-          onLoad={handleScriptLoad}
-          strategy="beforeInteractive"
-        />
-
         <header>
           <Link href="/">
             <span className="back-link">← Voltar</span>
@@ -157,10 +177,10 @@ const ARPage: React.FC = () => {
             <div className="reference-image-container">
               <h3>Imagem de Referência:</h3>
               <Image 
-                src="/imagetrace/card.png"
+                src="/imagetrace/qrcode.jpg"
                 alt="Imagem para tracking AR"
                 width={200}
-                height={120}
+                height={200}
                 onClick={() => setShowImageFullscreen(true)}
                 className="reference-image"
               />
@@ -203,10 +223,10 @@ const ARPage: React.FC = () => {
             <div className="fullscreen-overlay" onClick={() => setShowImageFullscreen(false)}>
               <div className="fullscreen-image-container">
                 <Image 
-                  src="/imagetrace/card.png"
+                  src="/imagetrace/qrcode.jpg"
                   alt="Imagem para tracking AR"
                   width={800}
-                  height={480}
+                  height={800}
                   className="fullscreen-image"
                 />
                 <div className="close-button">×</div>
