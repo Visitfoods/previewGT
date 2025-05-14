@@ -23,6 +23,8 @@
 - [x] Atualizar imagem de referência para tracking AR com alta qualidade
 - [x] Atualizar arquivo target.mind para corresponder à nova imagem de referência
 - [x] Corrigir erro de compilação "Property 'load' does not exist on type 'SplatLoader'"
+- [x] Corrigir problema com a visualização da câmara no QR Scanner
+- [x] Melhorar interface da página principal com acesso direto às funcionalidades
 
 # Concluídas
 
@@ -44,3 +46,5 @@
 - A página AR agora contém instruções de resolução de problemas para ajudar os utilizadores em caso de dificuldades
 - A correção do erro "e.loadAsync is not a function" foi implementada verificando a existência da função antes de chamá-la
 - O problema de compilação relacionado ao método 'load' inexistente foi resolvido usando uma abordagem completamente diferente com um sistema de fallback visualmente atraente
+- A câmara agora é solicitada explicitamente com getUserMedia antes de iniciar o QR Scanner para garantir compatibilidade com dispositivos móveis
+- A página principal foi redesenhada para facilitar a navegação e proporcionar acesso direto às funcionalidades de AR e visualização 3D
