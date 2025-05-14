@@ -9,8 +9,8 @@
 # Em curso
 
 - [x] Implementar visualização em realidade aumentada (AR) com tracking de imagem
-- [ ] Optimizar desempenho em dispositivos de baixa capacidade
-- [ ] Implementar análise de métricas de utilização
+- [x] Optimizar desempenho em dispositivos de baixa capacidade
+- [x] Implementar análise de métricas de utilização
 - [ ] Testar a aplicação em dispositivos móveis reais
 - [ ] Resolver problemas de compatibilidade com iOS
 
