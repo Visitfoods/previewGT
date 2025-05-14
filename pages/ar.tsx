@@ -32,7 +32,7 @@ const ARPage: React.FC = () => {
               <h3>Realidade Aumentada com Tracking de Imagem</h3>
               <p>A aplicação está configurada para o seguinte:</p>
               <ul>
-                <li><strong>Imagem de tracking:</strong> imagetrace01.jpg</li>
+                <li><strong>Imagem de tracking:</strong> qrcode.svg</li>
                 <li><strong>Modelo 3D:</strong> {defaultModel.name} ({defaultModel.path.split('/').pop()})</li>
               </ul>
               <p className="note">
@@ -41,7 +41,7 @@ const ARPage: React.FC = () => {
               
               <div className="tracking-image-container">
                 <Image 
-                  src="/imagetrace/imagetrace01.jpg"
+                  src="/imagetrace/qrcode.svg"
                   alt="Imagem para tracking AR"
                   width={200}
                   height={150}
@@ -57,7 +57,7 @@ const ARPage: React.FC = () => {
             <div className="fullscreen-overlay" onClick={() => setShowImageFullscreen(false)}>
               <div className="fullscreen-image-container">
                 <Image 
-                  src="/imagetrace/imagetrace01.jpg"
+                  src="/imagetrace/qrcode.svg"
                   alt="Imagem para tracking AR"
                   width={800}
                   height={600}
@@ -86,7 +86,7 @@ const ARPage: React.FC = () => {
               <h4>Passos para gerar o arquivo de tracking:</h4>
               <ol>
                 <li>Acesse <a href="https://hiukim.github.io/mind-ar-js-doc/tools/compile/" target="_blank" rel="noopener noreferrer">MindAR Image Compiler</a></li>
-                <li>Faça upload da imagem imagetrace01.jpg</li>
+                <li>Faça upload da imagem qrcode.svg</li>
                 <li>Clique em "Compile" para gerar o arquivo .mind</li>
                 <li>Baixe o arquivo e coloque-o em public/targets/target.mind</li>
               </ol>

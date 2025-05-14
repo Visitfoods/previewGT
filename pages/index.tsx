@@ -60,7 +60,7 @@ const Home: React.FC = () => {
                   <div className="qr-example">
                     <p>Exemplo de código QR válido:</p>
                     <Image 
-                      src="/imagetrace/imagetrace01.jpg"
+                      src="/imagetrace/qrcode.svg"
                       alt="Exemplo de código QR"
                       width={100}
                       height={100}
@@ -125,7 +125,7 @@ const Home: React.FC = () => {
               </div>
               <div className="ar-demo-image">
                 <Image 
-                  src="/imagetrace/imagetrace01.jpg"
+                  src="/imagetrace/qrcode.svg"
                   alt="Imagem para tracking AR"
                   width={200}
                   height={200}

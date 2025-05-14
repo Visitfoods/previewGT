@@ -20,7 +20,7 @@ export const availableModels: Model3D[] = [
     name: 'Gelato 3D',
     path: '/models/3dgelato.ply',
     description: 'Modelo 3D Gaussian Splat de gelato com detalhes realistas',
-    thumbnail: '/imagetrace/imagetrace01.jpg'
+    thumbnail: '/imagetrace/qrcode.svg'
   }
   // Mais modelos podem ser adicionados aqui à medida que ficarem disponíveis
 ];
