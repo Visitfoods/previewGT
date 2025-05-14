@@ -29,12 +29,12 @@ const ARPage: React.FC = () => {
         await loadScript("https://aframe.io/releases/1.3.0/aframe.min.js");
         setScriptsLoaded(prev => prev + 1);
         
-        // Depois MindAR core
-        await loadScript("https://cdn.jsdelivr.net/npm/mind-ar@1.2.1/dist/mindar-image.prod.js");
+        // Depois MindAR core - usar tipo 'module' para evitar erro de import
+        await loadScript("https://cdn.jsdelivr.net/npm/mind-ar@1.2.1/dist/mindar-image.prod.js", 'module');
         setScriptsLoaded(prev => prev + 1);
         
         // Por fim, MindAR para A-Frame
-        await loadScript("https://cdn.jsdelivr.net/npm/mind-ar@1.2.1/dist/mindar-image-aframe.prod.js");
+        await loadScript("https://cdn.jsdelivr.net/npm/mind-ar@1.2.1/dist/mindar-image-aframe.prod.js", 'module');
         setScriptsLoaded(prev => prev + 1);
       } catch (err) {
         console.error("Erro ao carregar scripts:", err);
@@ -45,11 +45,14 @@ const ARPage: React.FC = () => {
     loadScripts();
   }, []);
 
-  const loadScript = (src: string): Promise<void> => {
+  const loadScript = (src: string, type?: string): Promise<void> => {
     return new Promise((resolve, reject) => {
       const script = document.createElement('script');
       script.src = src;
       script.async = true;
+      if (type) {
+        script.type = type;
+      }
       
       script.onload = () => {
         console.log(`Script carregado: ${src}`);
@@ -68,7 +71,10 @@ const ARPage: React.FC = () => {
   const cleanupAR = () => {
     const container = document.getElementById('ar-container');
     if (container) {
-      container.innerHTML = '';
+      // Remover cuidadosamente os elementos da cena
+      while (container.firstChild) {
+        container.removeChild(container.firstChild);
+      }
     }
     setArStarted(false);
     setError(null);
