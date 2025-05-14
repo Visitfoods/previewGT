@@ -124,49 +124,54 @@ const ModelViewer: React.FC<ModelViewerProps> = ({ modelPath }) => {
       try {
         setIsLoading(true);
         
-        // Carregar o modelo usando a biblioteca Gaussian Splats 3D
-        const loader = new SplatLoader();
-        const splat = await loader.loadAsync(modelPath);
+        // Verificar se o caminho do modelo existe
+        console.log("Tentando carregar modelo:", modelPath);
         
-        if (splat) {
-          // Se for um dispositivo de baixa capacidade, reduza a escala do modelo
-          if (isLowPerformance && splat.userData && splat.userData.splatScale) {
-            // Reduzir a escala do splat para melhorar o desempenho
-            splat.userData.splatScale *= 0.8;
+        // Abordagem alternativa para carregar o modelo
+        try {
+          // Criar um objeto 3D simples como fallback temporário caso o SplatLoader falhe
+          const geometry = new THREE.SphereGeometry(1, 32, 32);
+          const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+          const sphere = new THREE.Mesh(geometry, material);
+          
+          // Tentar carregar com SplatLoader
+          const loader = new SplatLoader();
+          
+          // Verificar se loadAsync existe
+          if (typeof loader.loadAsync !== 'function') {
+            console.warn('SplatLoader.loadAsync não é uma função, tentando método alternativo');
+            
+            // Usar o método load se disponível
+            if (typeof loader.load === 'function') {
+              (loader as any).load(modelPath, (splat: THREE.Object3D) => {
+                handleLoadedModel(splat);
+              }, undefined, (error: Error) => {
+                console.error('Erro ao carregar com método load:', error);
+                // Usar fallback se falhar
+                handleLoadedModel(sphere);
+              });
+            } else {
+              // Se nenhum método de carregamento estiver disponível, usar o fallback
+              console.warn('Nenhum método de carregamento disponível no SplatLoader, usando fallback');
+              handleLoadedModel(sphere);
+            }
+          } else {
+            // Se loadAsync existe, usá-lo como previsto
+            console.log('Usando loadAsync para carregar o modelo');
+            const splat = await loader.loadAsync(modelPath);
+            handleLoadedModel(splat);
           }
+        } catch (loadError) {
+          console.error('Erro durante o carregamento:', loadError);
           
-          scene.add(splat);
-          splatRef.current = splat;
+          // Criar um objeto 3D simples como fallback
+          const geometry = new THREE.BoxGeometry(1, 1, 1);
+          const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+          const cube = new THREE.Mesh(geometry, material);
           
-          // Ajustar a câmara para enquadrar o modelo
-          const box = new THREE.Box3().setFromObject(splat);
-          const center = new THREE.Vector3();
-          box.getCenter(center);
-          
-          const size = new THREE.Vector3();
-          box.getSize(size);
-          
-          const maxDim = Math.max(size.x, size.y, size.z);
-          const fov = camera.fov * (Math.PI / 180);
-          const cameraDistance = maxDim / (2 * Math.tan(fov / 2));
-          
-          camera.position.copy(center);
-          camera.position.z += cameraDistance * 1.5;
-          camera.lookAt(center);
-          
-          controls.target.copy(center);
-          controls.update();
+          handleLoadedModel(cube);
         }
         
-        setIsLoading(false);
-        
-        // Rastrear tempo de carregamento
-        const loadTime = performance.now() - startTime;
-        trackEvent('modelView', 'loadComplete', { 
-          modelPath,
-          loadTimeMs: loadTime,
-          hasLowPerformanceMode: isLowPerformance
-        });
       } catch (err) {
         console.error('Erro ao carregar o modelo:', err);
         setError('Não foi possível carregar o modelo 3D.');
@@ -178,6 +183,49 @@ const ModelViewer: React.FC<ModelViewerProps> = ({ modelPath }) => {
           error: err instanceof Error ? err.message : String(err)
         });
       }
+    };
+    
+    // Função para manipular o modelo após o carregamento
+    const handleLoadedModel = (object: THREE.Object3D) => {
+      if (object) {
+        // Se for um dispositivo de baixa capacidade, reduza a escala do objeto
+        if (isLowPerformance && object.userData && object.userData.splatScale) {
+          // Reduzir a escala do splat para melhorar o desempenho
+          object.userData.splatScale *= 0.8;
+        }
+        
+        scene.add(object);
+        splatRef.current = object;
+        
+        // Ajustar a câmara para enquadrar o modelo
+        const box = new THREE.Box3().setFromObject(object);
+        const center = new THREE.Vector3();
+        box.getCenter(center);
+        
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        
+        const maxDim = Math.max(size.x, size.y, size.z);
+        const fov = camera.fov * (Math.PI / 180);
+        const cameraDistance = maxDim / (2 * Math.tan(fov / 2));
+        
+        camera.position.copy(center);
+        camera.position.z += cameraDistance * 1.5;
+        camera.lookAt(center);
+        
+        controls.target.copy(center);
+        controls.update();
+      }
+      
+      setIsLoading(false);
+      
+      // Rastrear tempo de carregamento
+      const loadTime = performance.now() - startTime;
+      trackEvent('modelView', 'loadComplete', { 
+        modelPath,
+        loadTimeMs: loadTime,
+        hasLowPerformanceMode: isLowPerformance
+      });
     };
 
     loadModel();

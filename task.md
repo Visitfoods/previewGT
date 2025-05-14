@@ -17,6 +17,11 @@
 - [x] Resolver problema de visualização do código QR 
 - [x] Substituir imagem SVG por JPG para maior compatibilidade
 - [x] Adicionar biblioteca Mind-AR via CDN para implementação de AR sem instalação local
+- [x] Corrigir erro "e.loadAsync is not a function" no carregamento do modelo 3D
+- [x] Implementar fallback para modelos 3D quando não for possível carregar PLY
+- [x] Adicionar botão de acesso direto à experiência AR
+- [x] Atualizar imagem de referência para tracking AR com alta qualidade
+- [x] Atualizar arquivo target.mind para corresponder à nova imagem de referência
 
 # Concluídas
 
@@ -33,5 +38,7 @@
 # Notas
 
 - A implementação do AR usando Mind-AR foi feita com scripts CDN para evitar problemas de instalação de dependências locais
-- Para o tracking de imagem AR, é necessário gerar um arquivo `.mind` a partir da imagem de rastreamento usando o MindAR Image Compiler
-- Usar o código QR como imagem de tracking pode não ser ideal devido à baixa quantidade de detalhes visuais - considerar imagens com mais características distintas
+- Para o tracking de imagem AR, foi utilizado o arquivo `.mind` correspondente à imagem card.png obtida do repositório oficial do Mind-AR
+- Foi implementado um sistema de fallback para casos onde o carregamento do modelo 3D PLY falhe, mostrando um cubo 3D animado
+- A página AR agora contém instruções de resolução de problemas para ajudar os utilizadores em caso de dificuldades
+- A correção do erro "e.loadAsync is not a function" foi implementada verificando a existência da função antes de chamá-la

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import QrScanner from 'qr-scanner';
+import { useRouter } from 'next/router';
 
 interface QRScannerProps {
   onScan: (result: string) => void;
@@ -16,6 +17,7 @@ const QRScanner: React.FC<QRScannerProps> = ({ onScan }) => {
   const [scanning, setScanning] = useState(false);
   const [debugLog, setDebugLog] = useState<string[]>([]);
   const scannerRef = useRef<QrScanner | null>(null);
+  const router = useRouter();
 
   // Função para adicionar logs de debug
   const addDebugLog = (message: string) => {
@@ -231,6 +233,15 @@ const QRScanner: React.FC<QRScannerProps> = ({ onScan }) => {
                   style={{ backgroundColor: '#2196F3' }}
                 >
                   Testar com 'gelato-3d'
+                </button>
+                <button 
+                  onClick={() => {
+                    addDebugLog("Navegando diretamente para a experiência AR");
+                    router.push("/ar");
+                  }}
+                  style={{ backgroundColor: '#9C27B0' }}
+                >
+                  Ir para AR diretamente
                 </button>
               </div>
             </div>

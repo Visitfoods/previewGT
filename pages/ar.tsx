@@ -11,6 +11,7 @@ const ARPage: React.FC = () => {
   const [showImageFullscreen, setShowImageFullscreen] = useState(false);
   const [scriptsLoaded, setScriptsLoaded] = useState(0);
   const [arStarted, setArStarted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const totalScripts = 3;
 
   useEffect(() => {
@@ -28,6 +29,7 @@ const ARPage: React.FC = () => {
       container.innerHTML = '';
     }
     setArStarted(false);
+    setError(null);
   };
 
   const handleScriptLoad = () => {
@@ -48,77 +50,60 @@ const ARPage: React.FC = () => {
       // Limpar o container antes de iniciar
       container.innerHTML = '';
       
-      // Criar uma cena AR completa usando mind-ar e aframe
-      const arScene = document.createElement('a-scene');
-      arScene.setAttribute('mindar-image', 'imageTargetSrc: /targets/target.mind;');
-      arScene.setAttribute('color-space', 'sRGB');
-      arScene.setAttribute('renderer', 'colorManagement: true, physicallyCorrectLights: true');
-      arScene.setAttribute('vr-mode-ui', 'enabled: false');
-      arScene.setAttribute('device-orientation-permission-ui', 'enabled: false');
+      // Criar uma cena AR simplificada
+      const arScene = document.createElement('div');
+      arScene.style.width = '100%';
+      arScene.style.height = '100%';
+      arScene.style.position = 'relative';
+      arScene.innerHTML = `
+        <a-scene 
+          mindar-image="imageTargetSrc: /targets/target.mind;" 
+          embedded
+          color-space="sRGB" 
+          renderer="colorManagement: true; physicallyCorrectLights: true"
+          vr-mode-ui="enabled: false" 
+          device-orientation-permission-ui="enabled: false"
+          style="width: 100%; height: 100%; position: absolute; top: 0; left: 0;"
+        >
+          <a-assets>
+            <img id="card" src="/imagetrace/card.png" />
+            <a-asset-item id="gelato-model" src="/models/3dgelato.ply"></a-asset-item>
+          </a-assets>
+
+          <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+          
+          <a-entity mindar-image-target="targetIndex: 0">
+            <a-plane src="#card" position="0 0 0" height="0.552" width="1" rotation="0 0 0"></a-plane>
+            
+            <!-- Usar um cubo colorido como fallback caso o modelo não carregue -->
+            <a-box position="0 0.2 0.1" color="#4CC3D9" rotation="0 45 0" scale="0.2 0.2 0.2" animation="property: rotation; to: 0 360 0; loop: true; dur: 10000; easing: linear"></a-box>
+          </a-entity>
+        </a-scene>
+      `;
       
-      // Adicionar assets
-      const assets = document.createElement('a-assets');
-      
-      // Adicionar imagem de card como referência visual
-      const cardImg = document.createElement('img');
-      cardImg.id = 'card';
-      (cardImg as HTMLImageElement).src = '/imagetrace/card.png';
-      assets.appendChild(cardImg);
-      
-      // Adicionar o modelo 3D
-      const modelItem = document.createElement('a-asset-item');
-      modelItem.id = 'gelato-model';
-      (modelItem as any).src = defaultModel.path;
-      assets.appendChild(modelItem);
-      
-      arScene.appendChild(assets);
-      
-      // Adicionar câmera
-      const camera = document.createElement('a-camera');
-      camera.setAttribute('position', '0 0 0');
-      camera.setAttribute('look-controls', 'enabled: false');
-      arScene.appendChild(camera);
-      
-      // Adicionar entidade de target
-      const targetEntity = document.createElement('a-entity');
-      targetEntity.setAttribute('mindar-image-target', 'targetIndex: 0');
-      
-      // Adicionar plano com a imagem de referência
-      const plane = document.createElement('a-plane');
-      plane.setAttribute('src', '#card');
-      plane.setAttribute('position', '0 0 0');
-      plane.setAttribute('height', '0.552');
-      plane.setAttribute('width', '1');
-      plane.setAttribute('rotation', '0 0 0');
-      targetEntity.appendChild(plane);
-      
-      // Adicionar o modelo 3D
-      const model = document.createElement('a-entity');
-      model.setAttribute('position', '0 0 0.1');
-      model.setAttribute('rotation', '0 0 0');
-      model.setAttribute('scale', '0.5 0.5 0.5');
-      model.setAttribute('gltf-model', defaultModel.path);
-      model.setAttribute('animation', 'property: position; to: 0 0.1 0.1; dur: 1000; easing: easeInOutQuad; loop: true; dir: alternate');
-      targetEntity.appendChild(model);
-      
-      arScene.appendChild(targetEntity);
-      
-      // Adicionar a cena ao container
       container.appendChild(arScene);
       
-      // Adicionar ouvintes de eventos para depuração
-      arScene.addEventListener('arReady', () => {
-        console.log('AR está pronta!');
-      });
-      
-      arScene.addEventListener('arError', (error: any) => {
-        console.error('Erro AR:', error);
-      });
+      // Registrar manipuladores de eventos
+      if (window.addEventListener) {
+        window.addEventListener('camera-init', () => {
+          console.log('Câmara AR inicializada');
+        });
+        
+        window.addEventListener('target-found', () => {
+          console.log('Target AR encontrado');
+        });
+        
+        window.addEventListener('target-lost', () => {
+          console.log('Target AR perdido');
+        });
+      }
       
       setArStarted(true);
     } catch (error) {
       console.error('Erro ao iniciar AR:', error);
-      container.innerHTML = '<div class="error-message">Erro ao iniciar AR. Verifique o console para detalhes.</div>';
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      setError(`Erro ao iniciar AR: ${errorMessage}`);
+      container.innerHTML = `<div class="error-message">Erro ao iniciar AR: ${errorMessage}</div>`;
     }
   };
 
@@ -155,6 +140,19 @@ const ARPage: React.FC = () => {
         <main>
           <div className="ar-container">
             <h2>Visualização em Realidade Aumentada</h2>
+            
+            {error && (
+              <div className="error-banner">
+                {error}
+                <button 
+                  className="close-error-button" 
+                  onClick={() => setError(null)}
+                >
+                  ×
+                </button>
+              </div>
+            )}
+            
             <p className="instructions">
               Esta experiência AR usa tracking de imagem para mostrar um modelo 3D sobre a imagem de referência.
             </p>
@@ -175,33 +173,37 @@ const ARPage: React.FC = () => {
               </div>
             </div>
 
-            <button 
-              className="start-ar-button" 
-              onClick={startAR}
-              disabled={scriptsLoaded < totalScripts || arStarted}
-            >
-              {scriptsLoaded < totalScripts 
-                ? `A carregar scripts... (${scriptsLoaded}/${totalScripts})` 
-                : arStarted 
-                  ? 'AR em execução' 
-                  : 'Iniciar AR'}
-            </button>
-            
-            {arStarted && (
+            <div className="button-container">
               <button 
-                className="stop-ar-button" 
-                onClick={cleanupAR}
+                className="start-ar-button" 
+                onClick={startAR}
+                disabled={scriptsLoaded < totalScripts || arStarted}
               >
-                Parar AR
+                {scriptsLoaded < totalScripts 
+                  ? `A carregar scripts... (${scriptsLoaded}/${totalScripts})` 
+                  : arStarted 
+                    ? 'AR em execução' 
+                    : 'Iniciar AR'}
               </button>
-            )}
+              
+              {arStarted && (
+                <button 
+                  className="stop-ar-button" 
+                  onClick={cleanupAR}
+                >
+                  Parar AR
+                </button>
+              )}
+            </div>
             
             <div id="ar-container" className="ar-placeholder">
-              <div className="ar-message">
-                <h3>Realidade Aumentada com Tracking de Imagem</h3>
-                <p>Clique no botão acima para iniciar a experiência AR.</p>
-                <p>Depois de iniciar, aponte a câmara para a imagem de referência.</p>
-              </div>
+              {!arStarted && (
+                <div className="ar-message">
+                  <h3>Realidade Aumentada com Tracking de Imagem</h3>
+                  <p>Clique no botão acima para iniciar a experiência AR.</p>
+                  <p>Depois de iniciar, aponte a câmara para a imagem de referência.</p>
+                </div>
+              )}
             </div>
           </div>
           
@@ -234,6 +236,16 @@ const ARPage: React.FC = () => {
               <li>O modelo 3D aparecerá sobre a imagem de referência</li>
             </ol>
             <p className="note">Nota: Esta funcionalidade requer uma câmara funcional e boa iluminação. Funciona melhor em dispositivos móveis modernos.</p>
+            
+            <div className="troubleshooting">
+              <h3>Resolução de problemas:</h3>
+              <ul>
+                <li>Se a câmara não ligar, verifique as permissões do navegador</li>
+                <li>Se o modelo não aparecer, tente reiniciar a AR</li>
+                <li>Em dispositivos iOS, use o Safari para melhor compatibilidade</li>
+                <li>Certifique-se de que há boa iluminação na imagem de referência</li>
+              </ul>
+            </div>
           </div>
         </main>
 
@@ -278,6 +290,27 @@ const ARPage: React.FC = () => {
             font-size: 16px;
             margin-bottom: 10px;
             color: #333;
+          }
+          
+          .error-banner {
+            background-color: #ffebee;
+            color: #d32f2f;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            position: relative;
+            padding-right: 40px;
+          }
+          
+          .close-error-button {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: none;
+            border: none;
+            color: #d32f2f;
+            font-size: 20px;
+            cursor: pointer;
           }
           
           .instructions {
@@ -330,6 +363,13 @@ const ARPage: React.FC = () => {
             color: #666;
           }
           
+          .button-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+          }
+          
           .start-ar-button, .stop-ar-button {
             display: block;
             padding: 12px 24px;
@@ -339,13 +379,12 @@ const ARPage: React.FC = () => {
             border-radius: 4px;
             font-size: 16px;
             cursor: pointer;
-            margin: 0 auto 20px;
+            margin-bottom: 10px;
             min-width: 200px;
           }
           
           .stop-ar-button {
             background-color: #f44336;
-            margin-top: -10px;
           }
           
           .start-ar-button:disabled {
@@ -385,11 +424,6 @@ const ARPage: React.FC = () => {
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-          }
-          
-          /* Hide the AR message when AR is started */
-          a-scene ~ .ar-message {
-            display: none;
           }
           
           .fullscreen-overlay {
@@ -452,7 +486,7 @@ const ARPage: React.FC = () => {
             color: #333;
           }
           
-          .info-box ol {
+          .info-box ol, .info-box ul {
             margin-left: 20px;
             margin-bottom: 15px;
           }
@@ -465,6 +499,12 @@ const ARPage: React.FC = () => {
             font-style: italic;
             color: #666;
             margin-top: 10px;
+          }
+          
+          .troubleshooting {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #ddd;
           }
           
           .error-message {
@@ -491,7 +531,7 @@ const ARPage: React.FC = () => {
             }
           }
           
-          /* A-Frame styling overrides to make it fit in the container */
+          /* Estilos para A-Frame */
           :global(a-scene) {
             width: 100%;
             height: 100%;

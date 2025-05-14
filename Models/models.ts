@@ -13,14 +13,14 @@ export const availableModels: Model3D[] = [
     name: 'Gelado Tradicional',
     path: '/models/Gelado 3D_SUPERSPLAT.compressed.ply',
     description: 'Modelo 3D de um gelado tradicional de cone',
-    thumbnail: '/models/thumbnails/gelado-tradicional.jpg'
+    thumbnail: '/imagetrace/card.png'
   },
   {
     id: 'gelato-3d',
     name: 'Gelato 3D',
     path: '/models/3dgelato.ply',
     description: 'Modelo 3D Gaussian Splat de gelato com detalhes realistas',
-    thumbnail: '/imagetrace/qrcode.jpg'
+    thumbnail: '/imagetrace/card.png'
   }
   // Mais modelos podem ser adicionados aqui à medida que ficarem disponíveis
 ];
