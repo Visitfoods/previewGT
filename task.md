@@ -1,10 +1,9 @@
 # Backlog
 
-- [ ] Adicionar suporte a múltiplos modelos 3D
 - [ ] Implementar carregamento progressivo para modelos grandes
 - [ ] Adicionar animações e efeitos visuais ao modelo 3D
 - [ ] Implementar modo offline com Service Workers
-- [ ] Adicionar suporte para upload de imagem como alternativa à câmara
+- [x] Adicionar suporte para upload de imagem como alternativa à câmara
 - [ ] Adicionar suporte para partilha nas redes sociais
 
 # Em curso
@@ -23,3 +22,4 @@
 - [x] Implementar página de detalhes do produto
 - [x] Integrar o modelo 3D existente (Gelado 3D_SUPERSPLAT.compressed.ply)
 - [x] Corrigir erros de TypeScript e compatibilidade
+- [x] Adicionar suporte a múltiplos modelos 3D

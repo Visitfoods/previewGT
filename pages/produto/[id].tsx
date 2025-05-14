@@ -1,13 +1,18 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import ProductInfo from '../../components/ProductInfo';
+import { defaultModel, Model3D, getModelById } from '../../Models/models';
 
-// Importar o componente ModelViewer dinamicamente para evitar erros de SSR
+// Importar os componentes dinamicamente para evitar erros de SSR
 const ModelViewer = dynamic(() => import('../../components/ModelViewer'), {
+  ssr: false,
+});
+
+const ModelSelector = dynamic(() => import('../../components/ModelSelector'), {
   ssr: false,
 });
 
@@ -15,15 +20,19 @@ const ProductPage: React.FC = () => {
   const router = useRouter();
   const { id } = router.query;
   
-  // Caminho para o modelo 3D
-  // Em uma aplicação real, este caminho seria dinâmico com base no ID do produto
-  const modelPath = '/models/Gelado 3D_SUPERSPLAT.compressed.ply';
+  // Estado para controlar o modelo selecionado
+  const [selectedModel, setSelectedModel] = useState<Model3D>(defaultModel);
+
+  // Função para lidar com a seleção de um novo modelo
+  const handleModelSelect = (model: Model3D) => {
+    setSelectedModel(model);
+  };
 
   return (
     <div className="container">
       <header>
         <Link href="/">
-          <a className="back-link">← Voltar</a>
+          <span className="back-link">← Voltar</span>
         </Link>
         <h1>Gelatomania AR</h1>
       </header>
@@ -32,7 +41,13 @@ const ProductPage: React.FC = () => {
         <div className="product-container">
           <div className="model-container">
             <h2>Visualização 3D</h2>
-            <ModelViewer modelPath={modelPath} />
+            <ModelViewer modelPath={selectedModel.path} />
+            
+            {/* Componente de seleção de modelos */}
+            <ModelSelector 
+              onSelect={handleModelSelect} 
+              selectedModelId={selectedModel.id}
+            />
           </div>
           
           <div className="info-container">
@@ -64,6 +79,7 @@ const ProductPage: React.FC = () => {
           color: #4CAF50;
           text-decoration: none;
           font-weight: bold;
+          cursor: pointer;
         }
         
         h1 {
