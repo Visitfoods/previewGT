@@ -1,0 +1,3 @@
+Este é um arquivo de placeholder.
+
+Substitua este arquivo pelo marcador real (target.mind) gerado conforme as instruções em README.md 

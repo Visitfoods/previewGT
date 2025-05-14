@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 import dynamic from 'next/dynamic';
 
 // Importar o componente QRScanner dinamicamente para evitar erros de SSR
@@ -59,6 +60,13 @@ const Home: React.FC = () => {
             >
               Iniciar Scanner de QR Code
             </button>
+            
+            <Link href="/ar">
+              <span className="ar-button">
+                Experimentar Realidade Aumentada
+              </span>
+            </Link>
+            
             {error && <p className="error-message">{error}</p>}
           </div>
         )}
@@ -120,6 +128,19 @@ const Home: React.FC = () => {
           border-radius: 8px;
           cursor: pointer;
           margin-bottom: 20px;
+        }
+        
+        .ar-button {
+          display: inline-block;
+          padding: 12px 25px;
+          font-size: 16px;
+          background-color: #2196F3;
+          color: white;
+          border: none;
+          border-radius: 8px;
+          cursor: pointer;
+          margin-bottom: 20px;
+          text-align: center;
         }
         
         .cancel-button {

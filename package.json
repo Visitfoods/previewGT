@@ -14,7 +14,8 @@
     "react-dom": "^18.2.0",
     "three": "^0.160.0",
     "qr-scanner": "^1.4.2",
-    "@mkkellogg/gaussian-splats-3d": "^0.2.0"
+    "@mkkellogg/gaussian-splats-3d": "^0.2.0",
+    "mind-ar-js": "^1.2.3"
   },
   "devDependencies": {
     "@types/node": "^20.8.0",
