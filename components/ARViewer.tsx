@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { SplatLoader } from '@mkkellogg/gaussian-splats-3d';
+// @ts-ignore
 import { MindARThree } from 'mind-ar-js';
 
 interface ARViewerProps {
@@ -17,7 +18,7 @@ const ARViewer: React.FC<ARViewerProps> = ({ modelPath, targetImagePath }) => {
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const splatRef = useRef<any>(null);
-  const arSystemRef = useRef<MindARThree | null>(null);
+  const arSystemRef = useRef<any>(null);
   
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,9 +32,12 @@ const ARViewer: React.FC<ARViewerProps> = ({ modelPath, targetImagePath }) => {
       try {
         setIsLoading(true);
         
+        // Garantir que o containerRef.current não é null
+        if (!containerRef.current) return;
+        
         // Criar sistema AR
         const mindarThree = new MindARThree({
-          container: containerRef.current!,
+          container: containerRef.current,
           imageTargetSrc: targetImagePath,
           filterMinCF: 0.0001,
           filterBeta: 0.001,
@@ -234,4 +238,4 @@ const ARViewer: React.FC<ARViewerProps> = ({ modelPath, targetImagePath }) => {
   );
 };
 
-export default ARViewer; 
+export default ARViewer;

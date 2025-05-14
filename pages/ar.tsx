@@ -2,13 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import dynamic from 'next/dynamic';
 import { defaultModel } from '../Models/models';
-
-// Importar o componente ARViewer dinamicamente
-const ARViewer = dynamic(() => import('../components/ARViewer'), {
-  ssr: false,
-});
 
 const ARPage: React.FC = () => {
   // Caminho para a imagem alvo (marcador)
@@ -31,10 +25,20 @@ const ARPage: React.FC = () => {
             Aponte a câmara para a imagem de referência ou código QR para visualizar o modelo 3D em realidade aumentada.
           </p>
           
-          <ARViewer 
-            modelPath={modelPath} 
-            targetImagePath={targetImage}
-          />
+          <div className="ar-placeholder">
+            <div className="ar-message">
+              <h3>Realidade Aumentada</h3>
+              <p>Para usar esta funcionalidade, é necessário:</p>
+              <ol>
+                <li>Criar um arquivo de marcador (target.mind) seguindo as instruções em /public/targets/README.md</li>
+                <li>Colocar o arquivo em /public/targets/</li>
+                <li>Permitir acesso à câmara</li>
+              </ol>
+              <p className="note">
+                Esta funcionalidade combina o seu modelo Gaussian Splat com tecnologia de AR para visualização sobre um marcador.
+              </p>
+            </div>
+          </div>
           
           <div className="info-box">
             <h3>Como usar:</h3>
@@ -100,6 +104,34 @@ const ARPage: React.FC = () => {
           width: 100%;
           max-width: 800px;
           margin: 0 auto;
+        }
+        
+        .ar-placeholder {
+          width: 100%;
+          height: 60vh;
+          min-height: 300px;
+          background-color: #f5f5f5;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 20px;
+        }
+        
+        .ar-message {
+          text-align: center;
+          padding: 20px;
+          max-width: 80%;
+        }
+        
+        .ar-message h3 {
+          margin-bottom: 10px;
+        }
+        
+        .ar-message ol {
+          text-align: left;
+          margin-left: 20px;
+          margin-bottom: 15px;
         }
         
         .info-box {

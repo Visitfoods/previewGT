@@ -30,4 +30,16 @@ declare module 'qr-scanner' {
     stop(): void;
     destroy(): void;
   }
+}
+
+declare module 'mind-ar-js' {
+  export class MindARThree {
+    constructor(options: any);
+    renderer: THREE.WebGLRenderer;
+    scene: THREE.Scene;
+    camera: THREE.PerspectiveCamera;
+    start(): Promise<void>;
+    stop(): void;
+    addAnchor(index: number): any;
+  }
 } 
