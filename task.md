@@ -11,7 +11,7 @@
 - [x] Implementar visualização em realidade aumentada (AR) com tracking de imagem
 - [x] Optimizar desempenho em dispositivos de baixa capacidade
 - [x] Implementar análise de métricas de utilização
-- [ ] Testar a aplicação em dispositivos móveis reais
+- [x] Testar a aplicação em dispositivos móveis reais
 - [ ] Resolver problemas de compatibilidade com iOS
 
 # Concluídas
