@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import Image from 'next/image';
 import dynamic from 'next/dynamic';
 
 // Importar o componente QRScanner dinamicamente para evitar erros de SSR
@@ -66,6 +67,21 @@ const Home: React.FC = () => {
                 Experimentar Realidade Aumentada
               </span>
             </Link>
+            
+            <div className="ar-demo-container">
+              <div className="ar-demo-text">
+                <h3>Aponte para esta imagem na página de AR:</h3>
+              </div>
+              <div className="ar-demo-image">
+                <Image 
+                  src="/imagetrace/imagetrace01.jpg"
+                  alt="Imagem para tracking AR"
+                  width={150}
+                  height={120}
+                  className="tracking-image-preview"
+                />
+              </div>
+            </div>
             
             {error && <p className="error-message">{error}</p>}
           </div>
@@ -141,6 +157,36 @@ const Home: React.FC = () => {
           cursor: pointer;
           margin-bottom: 20px;
           text-align: center;
+        }
+        
+        .ar-demo-container {
+          margin-top: 10px;
+          background-color: #f5f5f5;
+          padding: 15px;
+          border-radius: 8px;
+          max-width: 300px;
+          text-align: center;
+        }
+        
+        .ar-demo-text {
+          margin-bottom: 10px;
+        }
+        
+        .ar-demo-text h3 {
+          font-size: 16px;
+          margin: 0;
+          color: #333;
+        }
+        
+        .ar-demo-image {
+          border: 2px solid #4CAF50;
+          border-radius: 4px;
+          display: inline-block;
+          overflow: hidden;
+        }
+        
+        .tracking-image-preview {
+          display: block;
         }
         
         .cancel-button {

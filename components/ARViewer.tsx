@@ -11,7 +11,10 @@ interface ARViewerProps {
   targetImagePath: string;
 }
 
-const ARViewer: React.FC<ARViewerProps> = ({ modelPath, targetImagePath }) => {
+const ARViewer: React.FC<ARViewerProps> = ({ 
+  modelPath = '/models/3dgelato.ply', 
+  targetImagePath = '/targets/target.mind' 
+}) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
@@ -68,25 +71,30 @@ const ARViewer: React.FC<ARViewerProps> = ({ modelPath, targetImagePath }) => {
         const anchor = mindarThree.addAnchor(0);
         
         // Carregar o modelo Gaussian Splat
+        console.log(`Carregando modelo: ${modelPath}`);
         const loader = new SplatLoader();
         const splat = await loader.loadAsync(modelPath);
         
         if (splat) {
-          // Ajustar escala e posição do splat
-          splat.scale.set(0.05, 0.05, 0.05); // Ajuste conforme necessário
-          splat.position.set(0, 0, 0); // Ajuste conforme necessário
+          // Ajustar escala e posição do splat para o modelo específico
+          splat.scale.set(0.03, 0.03, 0.03); // Ajuste para o 3dgelato.ply
+          splat.position.set(0, -0.2, 0); // Ajustar para posicionar corretamente
+          
+          // Girar o modelo conforme necessário
+          splat.rotation.x = -Math.PI / 8; // Ligeira inclinação para cima
+          
           anchor.group.add(splat);
           splatRef.current = splat;
           
           // Evento quando o marcador é encontrado
           anchor.onTargetFound = () => {
             setScanCompleted(true);
-            console.log("Target found");
+            console.log("Target found - Visualizando modelo 3D Gelato");
           };
           
           // Evento quando o marcador é perdido
           anchor.onTargetLost = () => {
-            console.log("Target lost");
+            console.log("Target lost - Marcador perdido");
           };
         }
         
@@ -140,7 +148,7 @@ const ARViewer: React.FC<ARViewerProps> = ({ modelPath, targetImagePath }) => {
       {!scanCompleted && !isLoading && (
         <div className="scanning-overlay" id="scanning-overlay">
           <div className="scanning-box"></div>
-          <p>Aponte a câmara para a imagem ou código QR</p>
+          <p>Aponte a câmara para a imagem imagetrace01.jpg</p>
         </div>
       )}
       
