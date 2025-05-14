@@ -15,6 +15,7 @@ const Home: React.FC = () => {
   const router = useRouter();
   const [scanning, setScanning] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showInstructions, setShowInstructions] = useState(true);
 
   const handleScan = (result: string) => {
     if (!result) return;
@@ -45,13 +46,52 @@ const Home: React.FC = () => {
       <main>
         {scanning ? (
           <div className="scanner-container">
-            <QRScanner onScan={handleScan} />
-            <button 
-              className="cancel-button"
-              onClick={() => setScanning(false)}
-            >
-              Cancelar
-            </button>
+            {showInstructions && (
+              <div className="instructions-overlay">
+                <div className="instructions-content">
+                  <h2>Como utilizar o Scanner QR</h2>
+                  <ol>
+                    <li>Permita o acesso à câmara quando solicitado</li>
+                    <li>Aponte a câmara para o código QR</li>
+                    <li>Mantenha o código QR dentro da área de leitura (quadrado verde)</li>
+                    <li>Aguarde a deteção do código</li>
+                    <li>Se tiver problemas, pode tentar o modo alternativo</li>
+                  </ol>
+                  <div className="qr-example">
+                    <p>Exemplo de código QR válido:</p>
+                    <Image 
+                      src="/imagetrace/imagetrace01.jpg"
+                      alt="Exemplo de código QR"
+                      width={100}
+                      height={100}
+                      className="qr-example-image"
+                    />
+                  </div>
+                  <button 
+                    className="start-button"
+                    onClick={() => setShowInstructions(false)}
+                  >
+                    Entendi, começar a ler
+                  </button>
+                </div>
+              </div>
+            )}
+            
+            {!showInstructions && (
+              <>
+                <QRScanner onScan={handleScan} />
+                <div className="scanner-info">
+                  <p>Posicione o código QR dentro da área destacada</p>
+                  <p className="scanner-tip">Dica: Certifique-se de que há boa iluminação e que o código não está desfocado</p>
+                </div>
+                <button 
+                  className="cancel-button"
+                  onClick={() => setScanning(false)}
+                >
+                  Cancelar
+                </button>
+              </>
+            )}
           </div>
         ) : (
           <div className="start-container">
@@ -62,22 +102,33 @@ const Home: React.FC = () => {
               Iniciar Scanner de QR Code
             </button>
             
-            <Link href="/ar">
-              <span className="ar-button">
-                Experimentar Realidade Aumentada
-              </span>
-            </Link>
+            <div className="options-container">
+              <p>Escolha uma opção:</p>
+              
+              <Link href="/produto/gelado-tradicional">
+                <span className="option-button">
+                  Ver Gelado Tradicional
+                </span>
+              </Link>
+              
+              <Link href="/produto/gelato-3d">
+                <span className="option-button">
+                  Ver Gelato 3D
+                </span>
+              </Link>
+            </div>
             
             <div className="ar-demo-container">
               <div className="ar-demo-text">
-                <h3>Aponte para esta imagem na página de AR:</h3>
+                <h3>Imagem de exemplo para QR Code:</h3>
+                <p>Use esta imagem para testar o scanner</p>
               </div>
               <div className="ar-demo-image">
                 <Image 
                   src="/imagetrace/imagetrace01.jpg"
                   alt="Imagem para tracking AR"
-                  width={150}
-                  height={120}
+                  width={200}
+                  height={200}
                   className="tracking-image-preview"
                 />
               </div>
@@ -127,6 +178,71 @@ const Home: React.FC = () => {
           align-items: center;
         }
         
+        .instructions-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-color: rgba(0, 0, 0, 0.8);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          z-index: 100;
+        }
+        
+        .instructions-content {
+          background-color: white;
+          padding: 20px;
+          border-radius: 8px;
+          max-width: 90%;
+          max-height: 80vh;
+          overflow-y: auto;
+        }
+        
+        .instructions-content h2 {
+          color: #4CAF50;
+          margin-bottom: 15px;
+        }
+        
+        .instructions-content ol {
+          padding-left: 20px;
+          margin-bottom: 20px;
+        }
+        
+        .instructions-content li {
+          margin-bottom: 10px;
+        }
+        
+        .qr-example {
+          background-color: #f5f5f5;
+          padding: 10px;
+          border-radius: 8px;
+          margin-bottom: 20px;
+          text-align: center;
+        }
+        
+        .qr-example-image {
+          border: 2px solid #4CAF50;
+          border-radius: 8px;
+          margin-top: 10px;
+        }
+        
+        .scanner-info {
+          margin-top: 20px;
+          text-align: center;
+          background-color: #f5f5f5;
+          padding: 10px;
+          border-radius: 8px;
+          width: 100%;
+        }
+        
+        .scanner-tip {
+          font-size: 14px;
+          color: #666;
+          margin-top: 5px;
+        }
+        
         .start-container {
           display: flex;
           flex-direction: column;
@@ -146,8 +262,17 @@ const Home: React.FC = () => {
           margin-bottom: 20px;
         }
         
-        .ar-button {
-          display: inline-block;
+        .options-container {
+          margin: 20px 0;
+          padding: 15px;
+          background-color: #f5f5f5;
+          border-radius: 8px;
+          width: 100%;
+          max-width: 400px;
+        }
+        
+        .option-button {
+          display: block;
           padding: 12px 25px;
           font-size: 16px;
           background-color: #2196F3;
@@ -155,12 +280,12 @@ const Home: React.FC = () => {
           border: none;
           border-radius: 8px;
           cursor: pointer;
-          margin-bottom: 20px;
+          margin: 10px 0;
           text-align: center;
         }
         
         .ar-demo-container {
-          margin-top: 10px;
+          margin-top: 20px;
           background-color: #f5f5f5;
           padding: 15px;
           border-radius: 8px;
@@ -209,6 +334,23 @@ const Home: React.FC = () => {
           text-align: center;
           font-size: 14px;
           color: #666;
+        }
+        
+        @media (max-width: 768px) {
+          .instructions-content {
+            padding: 15px;
+            max-height: 70vh;
+          }
+          
+          .start-button {
+            padding: 12px 24px;
+            font-size: 16px;
+          }
+          
+          .option-button {
+            padding: 10px 20px;
+            font-size: 14px;
+          }
         }
       `}</style>
     </div>
