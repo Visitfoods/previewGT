@@ -57,6 +57,32 @@ const QRScanner: React.FC<QRScannerProps> = ({ onScan }) => {
         setScanning(true);
         addDebugLog("Iniciando configuração do scanner...");
         
+        // Solicitar permissões explicitamente antes de iniciar
+        try {
+          addDebugLog("Solicitando permissões de câmara explicitamente...");
+          const stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { 
+              facingMode: 'environment',
+              width: { ideal: 1280 },
+              height: { ideal: 720 }
+            } 
+          });
+          
+          // Atribuir o stream ao elemento de vídeo diretamente
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+            videoRef.current.onloadedmetadata = () => {
+              videoRef.current?.play().catch(e => {
+                addDebugLog(`Erro ao reproduzir vídeo: ${e.message}`);
+              });
+            };
+            
+            addDebugLog("Stream de câmara obtido com sucesso!");
+          }
+        } catch (permissionError) {
+          addDebugLog(`Erro ao solicitar permissões: ${permissionError instanceof Error ? permissionError.message : String(permissionError)}`);
+        }
+        
         // Debug da versão da biblioteca
         addDebugLog(`Versão do QR Scanner: ${'Verificando compatibilidade...'}`);
         
@@ -142,6 +168,14 @@ const QRScanner: React.FC<QRScannerProps> = ({ onScan }) => {
         scannerRef.current.destroy();
         scannerRef.current = null;
         addDebugLog("Scanner destruído");
+      }
+      
+      // Parar todos os streams de vídeo
+      if (videoRef.current && videoRef.current.srcObject) {
+        const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
+        tracks.forEach(track => track.stop());
+        videoRef.current.srcObject = null;
+        addDebugLog("Streams de mídia parados");
       }
     };
   }, [onScan, useFallback]);
@@ -297,6 +331,16 @@ const QRScanner: React.FC<QRScannerProps> = ({ onScan }) => {
                 className="qr-video" 
                 muted 
                 playsInline 
+                autoPlay
+                style={{
+                  width: '100%',
+                  height: 'auto',
+                  maxHeight: '70vh',
+                  objectFit: 'cover',
+                  border: '2px solid #4CAF50',
+                  borderRadius: '8px',
+                  background: '#000'
+                }}
               />
             </>
           )}
