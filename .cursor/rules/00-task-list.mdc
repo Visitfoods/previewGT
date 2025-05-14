@@ -1,0 +1,10 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Rule type: Always
+---
+Always read and update **task.md** at the project root.  
+After finishing any change, mark the corresponding task as ✅ Done.
+

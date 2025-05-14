@@ -1,0 +1,30 @@
+html,
+body {
+  padding: 0;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
+    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Estilos específicos para mobile */
+@media (max-width: 767px) {
+  body {
+    font-size: 16px;
+  }
+}
+
+/* Estilos para desktop */
+@media (min-width: 768px) {
+  body {
+    font-size: 18px;
+  }
+} 
