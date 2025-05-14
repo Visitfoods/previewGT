@@ -223,31 +223,72 @@ const QRScanner: React.FC<QRScannerProps> = ({ onScan }) => {
               <div className="button-container">
                 <button onClick={handleRetry}>Tentar novamente</button>
                 <button onClick={() => setUseFallback(true)}>Usar modo alternativo</button>
+                <button 
+                  onClick={() => {
+                    addDebugLog("Teste: Simulando QR Code 'gelato-3d'");
+                    onScan("gelato-3d");
+                  }}
+                  style={{ backgroundColor: '#2196F3' }}
+                >
+                  Testar com 'gelato-3d'
+                </button>
               </div>
             </div>
           )}
           
           {hasPermission === null && (
-            <div className="loading-message">A aceder à câmara...</div>
-          )}
-          
-          {hasPermission === true && (
-            <div className="scan-overlay">
-              <div className="scan-region">
-                <div className={`scan-marker ${scanning ? 'scanning' : ''}`}></div>
-              </div>
-              <div className="scan-status">
-                {scanning ? 'A procurar código QR...' : 'Câmara pronta'}
+            <div className="loading-message">
+              A aceder à câmara...
+              <div className="button-container" style={{ marginTop: '20px' }}>
+                <button 
+                  onClick={() => {
+                    addDebugLog("Teste: Simulando QR Code 'gelato-3d'");
+                    onScan("gelato-3d");
+                  }}
+                  style={{ backgroundColor: '#2196F3' }}
+                >
+                  Testar com 'gelato-3d'
+                </button>
               </div>
             </div>
           )}
           
-          <video 
-            ref={videoRef} 
-            className="qr-video" 
-            muted 
-            playsInline 
-          />
+          {hasPermission === true && (
+            <>
+              <div className="scan-overlay">
+                <div className="scan-region">
+                  <div className={`scan-marker ${scanning ? 'scanning' : ''}`}></div>
+                </div>
+                <div className="scan-status">
+                  {scanning ? 'A procurar código QR...' : 'Câmara pronta'}
+                </div>
+                <div style={{ position: 'absolute', bottom: '60px', width: '100%', textAlign: 'center' }}>
+                  <button 
+                    onClick={() => {
+                      addDebugLog("Teste: Simulando QR Code 'gelato-3d'");
+                      onScan("gelato-3d");
+                    }}
+                    style={{ 
+                      backgroundColor: '#2196F3',
+                      padding: '10px 15px',
+                      border: 'none',
+                      borderRadius: '4px',
+                      color: 'white',
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    Testar com 'gelato-3d'
+                  </button>
+                </div>
+              </div>
+              <video 
+                ref={videoRef} 
+                className="qr-video" 
+                muted 
+                playsInline 
+              />
+            </>
+          )}
           
           {/* Área de debug */}
           <div className="debug-panel">

@@ -25,10 +25,18 @@ const Home: React.FC = () => {
     const productId = result;
     
     console.log('QR Code detetado:', productId);
+    
+    // Verificação adicional para debug
+    const targetUrl = `/produto/${productId}`;
+    console.log('Navegando para:', targetUrl);
+    
     setScanning(false);
     
-    // Navegar para a página do produto
-    router.push(`/produto/${productId}`);
+    // Pequeno atraso para garantir que o console.log apareça
+    setTimeout(() => {
+      // Navegar para a página do produto
+      router.push(targetUrl);
+    }, 100);
   };
 
   const startScanning = () => {
