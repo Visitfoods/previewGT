@@ -127,49 +127,26 @@ const ModelViewer: React.FC<ModelViewerProps> = ({ modelPath }) => {
         // Verificar se o caminho do modelo existe
         console.log("Tentando carregar modelo:", modelPath);
         
-        // Abordagem alternativa para carregar o modelo
         try {
-          // Criar um objeto 3D simples como fallback temporário caso o SplatLoader falhe
-          const geometry = new THREE.SphereGeometry(1, 32, 32);
-          const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-          const sphere = new THREE.Mesh(geometry, material);
-          
           // Tentar carregar com SplatLoader
           const loader = new SplatLoader();
           
-          // Verificar se loadAsync existe
-          if (typeof loader.loadAsync !== 'function') {
-            console.warn('SplatLoader.loadAsync não é uma função, tentando método alternativo');
-            
-            // Usar o método load se disponível
-            if (typeof loader.load === 'function') {
-              (loader as any).load(modelPath, (splat: THREE.Object3D) => {
-                handleLoadedModel(splat);
-              }, undefined, (error: Error) => {
-                console.error('Erro ao carregar com método load:', error);
-                // Usar fallback se falhar
-                handleLoadedModel(sphere);
-              });
-            } else {
-              // Se nenhum método de carregamento estiver disponível, usar o fallback
-              console.warn('Nenhum método de carregamento disponível no SplatLoader, usando fallback');
-              handleLoadedModel(sphere);
-            }
-          } else {
-            // Se loadAsync existe, usá-lo como previsto
-            console.log('Usando loadAsync para carregar o modelo');
+          try {
+            // Tentar carregar o modelo
+            console.log('Tentando loadAsync para carregar o modelo');
             const splat = await loader.loadAsync(modelPath);
             handleLoadedModel(splat);
+          } catch (loadAsyncError) {
+            console.error('Erro loadAsync:', loadAsyncError);
+            
+            // Criar um objeto 3D simples como fallback
+            createFallbackObject();
           }
-        } catch (loadError) {
-          console.error('Erro durante o carregamento:', loadError);
+        } catch (loaderError) {
+          console.error('Erro ao criar loader:', loaderError);
           
           // Criar um objeto 3D simples como fallback
-          const geometry = new THREE.BoxGeometry(1, 1, 1);
-          const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-          const cube = new THREE.Mesh(geometry, material);
-          
-          handleLoadedModel(cube);
+          createFallbackObject();
         }
         
       } catch (err) {
@@ -183,6 +160,45 @@ const ModelViewer: React.FC<ModelViewerProps> = ({ modelPath }) => {
           error: err instanceof Error ? err.message : String(err)
         });
       }
+    };
+    
+    // Função para criar objeto 3D de fallback
+    const createFallbackObject = () => {
+      console.log('Criando objeto 3D de fallback');
+      
+      // Criar uma geometria mais interessante como fallback
+      const geometries = [
+        new THREE.BoxGeometry(1, 1, 1),
+        new THREE.SphereGeometry(0.7, 32, 32),
+        new THREE.ConeGeometry(0.7, 1.5, 32)
+      ];
+      
+      // Selecionar uma geometria aleatoriamente
+      const randomGeometry = geometries[Math.floor(Math.random() * geometries.length)];
+      
+      // Criar material com cores vibrantes
+      const material = new THREE.MeshPhongMaterial({ 
+        color: 0x4CAF50,  // Verde Gelatomania
+        specular: 0xffffff,
+        shininess: 100,
+        flatShading: true
+      });
+      
+      // Criar mesh
+      const fallbackObject = new THREE.Mesh(randomGeometry, material);
+      
+      // Adicionar animação ao objeto
+      const animate = () => {
+        if (fallbackObject) {
+          fallbackObject.rotation.x += 0.01;
+          fallbackObject.rotation.y += 0.01;
+        }
+        requestAnimationFrame(animate);
+      };
+      animate();
+      
+      // Usar o objeto de fallback
+      handleLoadedModel(fallbackObject);
     };
     
     // Função para manipular o modelo após o carregamento

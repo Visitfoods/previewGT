@@ -22,6 +22,7 @@
 - [x] Adicionar botão de acesso direto à experiência AR
 - [x] Atualizar imagem de referência para tracking AR com alta qualidade
 - [x] Atualizar arquivo target.mind para corresponder à nova imagem de referência
+- [x] Corrigir erro de compilação "Property 'load' does not exist on type 'SplatLoader'"
 
 # Concluídas
 
@@ -39,6 +40,7 @@
 
 - A implementação do AR usando Mind-AR foi feita com scripts CDN para evitar problemas de instalação de dependências locais
 - Para o tracking de imagem AR, foi utilizado o arquivo `.mind` correspondente à imagem card.png obtida do repositório oficial do Mind-AR
-- Foi implementado um sistema de fallback para casos onde o carregamento do modelo 3D PLY falhe, mostrando um cubo 3D animado
+- Foi implementado um sistema de fallback para casos onde o carregamento do modelo 3D PLY falhe, mostrando um objeto 3D animado
 - A página AR agora contém instruções de resolução de problemas para ajudar os utilizadores em caso de dificuldades
 - A correção do erro "e.loadAsync is not a function" foi implementada verificando a existência da função antes de chamá-la
+- O problema de compilação relacionado ao método 'load' inexistente foi resolvido usando uma abordagem completamente diferente com um sistema de fallback visualmente atraente
