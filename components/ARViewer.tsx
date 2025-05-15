@@ -22,11 +22,50 @@ const ARViewer: React.FC<ARViewerProps> = ({ modelPath }) => {
   const modelRef = useRef<THREE.Object3D | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isScriptLoaded, setIsScriptLoaded] = useState(false);
+  const [isScriptStarted, setIsScriptStarted] = useState(false);
+
+  // Função para verificar se o MindAR está disponível
+  const checkMindARAvailability = () => {
+    return new Promise<void>((resolve, reject) => {
+      let attempts = 0;
+      const maxAttempts = 20;
+      const interval = 250;
+
+      const check = () => {
+        attempts++;
+        console.log(`Tentativa ${attempts} de verificar MindAR`);
+
+        if (window.MINDAR) {
+          console.log('MindAR encontrado na window');
+          resolve();
+        } else if (attempts >= maxAttempts) {
+          reject(new Error('Timeout ao carregar MindAR'));
+        } else {
+          setTimeout(check, interval);
+        }
+      };
+
+      check();
+    });
+  };
 
   useEffect(() => {
     const startAR = async () => {
       try {
-        if (!containerRef.current || !window.MINDAR) return;
+        if (!containerRef.current) {
+          console.log('Container não disponível');
+          return;
+        }
+
+        // Verificar disponibilidade do MindAR
+        await checkMindARAvailability();
+        
+        if (!window.MINDAR) {
+          throw new Error('MindAR não disponível após verificação');
+        }
+
+        console.log('Iniciando AR com modelo:', modelPath);
 
         // Inicializar MindAR com o target.mind
         const mindarThree = new window.MINDAR.MindARThree({
@@ -34,7 +73,13 @@ const ARViewer: React.FC<ARViewerProps> = ({ modelPath }) => {
           imageTargetSrc: '/targets/target.mind',
           uiScanning: true,
           uiLoading: true,
+          filterMinCF: 0.0001,           // Reduzir o valor mínimo do filtro de confiança
+          filterBeta: 10,                // Aumentar a suavização do filtro
+          warmupTolerance: 5,            // Aumentar a tolerância de aquecimento
+          missTolerance: 5,              // Aumentar a tolerância de perda
         });
+
+        console.log('MindAR inicializado');
 
         const { renderer, scene, camera } = mindarThree;
         sceneRef.current = scene;
@@ -47,13 +92,16 @@ const ARViewer: React.FC<ARViewerProps> = ({ modelPath }) => {
         directionalLight.position.set(0, 10, 0);
         scene.add(directionalLight);
 
+        console.log('Carregando modelo GLB:', modelPath);
+
         // Carregar o modelo GLB
         const loader = new GLTFLoader();
         loader.load(
           modelPath,
           (gltf) => {
+            console.log('Modelo GLB carregado com sucesso');
             const model = gltf.scene;
-            model.scale.set(0.1, 0.1, 0.1); // Ajustar escala conforme necessário
+            model.scale.set(0.1, 0.1, 0.1);
             model.position.set(0, 0, 0);
             model.rotation.x = -Math.PI / 2;
 
@@ -63,8 +111,11 @@ const ARViewer: React.FC<ARViewerProps> = ({ modelPath }) => {
             modelRef.current = model;
 
             setIsLoading(false);
+            setIsScriptStarted(true);
           },
-          undefined,
+          (progress) => {
+            console.log('Progresso do carregamento:', (progress.loaded / progress.total * 100).toFixed(2) + '%');
+          },
           (error) => {
             console.error('Erro ao carregar modelo:', error);
             setError('Falha ao carregar o modelo 3D');
@@ -72,69 +123,114 @@ const ARViewer: React.FC<ARViewerProps> = ({ modelPath }) => {
           }
         );
 
+        console.log('Iniciando experiência AR');
+
         // Iniciar experiência AR
         await mindarThree.start();
         mindarThreeRef.current = mindarThree;
 
+        console.log('Experiência AR iniciada com sucesso');
+
         // Função de renderização
         renderer.setAnimationLoop(() => {
           if (modelRef.current) {
-            modelRef.current.rotation.z += 0.005; // Rotação suave do modelo
+            modelRef.current.rotation.z += 0.005;
           }
           renderer.render(scene, camera);
         });
 
       } catch (err) {
         console.error('Erro ao iniciar AR:', err);
-        setError('Falha ao iniciar a experiência AR');
+        setError(`Falha ao iniciar a experiência AR: ${err instanceof Error ? err.message : String(err)}`);
         setIsLoading(false);
       }
     };
 
-    if (window.MINDAR) {
+    if (isScriptLoaded && !isScriptStarted) {
+      console.log('Script MindAR carregado, iniciando AR');
       startAR();
     }
 
-    // Cleanup
     return () => {
       if (mindarThreeRef.current) {
+        console.log('Parando experiência AR');
         mindarThreeRef.current.stop();
       }
     };
-  }, [modelPath]);
+  }, [modelPath, isScriptLoaded, isScriptStarted]);
 
   return (
     <>
       <Script 
         src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js"
-        strategy="beforeInteractive"
-        onLoad={() => console.log('MindAR carregado')}
+        strategy="afterInteractive"
+        onLoad={() => {
+          console.log('Script MindAR carregado');
+          setIsScriptLoaded(true);
+        }}
+        onError={(e) => {
+          console.error('Erro ao carregar script MindAR:', e);
+          setError('Falha ao carregar biblioteca AR');
+        }}
       />
-      <div ref={containerRef} style={{ width: '100%', height: '100%' }}>
+
+      <div ref={containerRef} style={{ width: '100%', height: '100%', position: 'relative' }}>
         {isLoading && (
-          <div className="loading">
-            A carregar experiência AR...
-          </div>
-        )}
-        {error && (
-          <div className="error">
-            {error}
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            color: 'white',
+            zIndex: 1000
+          }}>
+            <div style={{
+              width: '50px',
+              height: '50px',
+              border: '5px solid #f3f3f3',
+              borderTop: '5px solid #4CAF50',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite',
+              marginBottom: '20px'
+            }} />
+            <p>A carregar experiência AR...</p>
+            {error && (
+              <div style={{
+                marginTop: '10px',
+                padding: '10px',
+                backgroundColor: 'rgba(255, 0, 0, 0.2)',
+                borderRadius: '5px',
+                textAlign: 'center'
+              }}>
+                <p style={{ margin: 0, color: '#ff6b6b' }}>{error}</p>
+                <button
+                  onClick={() => window.location.reload()}
+                  style={{
+                    marginTop: '10px',
+                    padding: '8px 16px',
+                    backgroundColor: '#4CAF50',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Tentar novamente
+                </button>
+              </div>
+            )}
           </div>
         )}
         <style jsx>{`
-          .loading, .error {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 20px;
-            border-radius: 8px;
-            text-align: center;
-          }
-          .error {
-            background: rgba(255, 0, 0, 0.7);
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
           }
         `}</style>
       </div>
