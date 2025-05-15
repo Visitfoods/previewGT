@@ -11,6 +11,8 @@ interface ARViewerProps {
 declare global {
   interface Window {
     MINDAR: any;
+    MindARThree: any; // Alternativa para versões mais antigas
+    mindar: any; // Outra possível alternativa
   }
 }
 
@@ -24,44 +26,35 @@ const ARViewer: React.FC<ARViewerProps> = ({ modelPath }) => {
   const [isScriptLoaded, setIsScriptLoaded] = useState(false);
   const [isScriptStarted, setIsScriptStarted] = useState(false);
 
-  // Função para verificar se o MindAR está disponível
-  const checkMindARAvailability = () => {
-    return new Promise<void>((resolve, reject) => {
-      let attempts = 0;
-      const maxAttempts = 20;
-      const interval = 250;
-
-      const check = () => {
-        attempts++;
-        console.log(`Tentativa ${attempts} de verificar MindAR`);
-
-        if (window.MINDAR) {
-          console.log('MindAR encontrado na window');
-          resolve();
-        } else if (attempts >= maxAttempts) {
-          reject(new Error('Timeout ao carregar MindAR'));
-        } else {
-          setTimeout(check, interval);
-        }
-      };
-
-      check();
-    });
-  };
-
   // Carregar o script MindAR manualmente
   useEffect(() => {
     if (isScriptLoaded) return;
 
     const loadMindARScript = () => {
+      // Remover qualquer script anterior para evitar conflitos
+      const oldScripts = document.querySelectorAll('script[src*="mind-ar"]');
+      oldScripts.forEach(script => script.parentNode?.removeChild(script));
+
+      // Carregar versão UMD da biblioteca (não módulo)
       const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-three.prod.js';
+      script.src = 'https://cdn.jsdelivr.net/npm/mind-ar@1.2.0/dist/mindar-image-three.prod.js';
       script.async = true;
-      script.type = 'module'; // Definir como módulo ES
       
       script.onload = () => {
         console.log('Script MindAR carregado manualmente');
-        setIsScriptLoaded(true);
+        
+        // Verificar se o objeto global MINDAR foi criado
+        if (window.MINDAR || window.MindARThree || window.mindar) {
+          console.log('Objeto MINDAR encontrado em:', {
+            MINDAR: !!window.MINDAR,
+            MindARThree: !!window.MindARThree,
+            mindar: !!window.mindar
+          });
+          setIsScriptLoaded(true);
+        } else {
+          console.error('Script carregado mas MINDAR não encontrado na window');
+          setError('Biblioteca AR carregada mas não inicializada corretamente');
+        }
       };
       
       script.onerror = (e) => {
@@ -77,9 +70,17 @@ const ARViewer: React.FC<ARViewerProps> = ({ modelPath }) => {
     return () => {
       // Limpar scripts ao desmontar o componente
       const scripts = document.querySelectorAll('script[src*="mind-ar"]');
-      scripts.forEach(script => document.body.removeChild(script));
+      scripts.forEach(script => script.parentNode?.removeChild(script));
     };
   }, []);
+
+  // Função para obter a API MindAR independentemente de onde ela esteja disponível
+  const getMindARAPI = () => {
+    if (window.MINDAR) return window.MINDAR;
+    if (window.MindARThree) return { MindARThree: window.MindARThree };
+    if (window.mindar) return window.mindar;
+    return null;
+  };
 
   useEffect(() => {
     const startAR = async () => {
@@ -89,25 +90,32 @@ const ARViewer: React.FC<ARViewerProps> = ({ modelPath }) => {
           return;
         }
 
-        // Verificar disponibilidade do MindAR
-        await checkMindARAvailability();
-        
-        if (!window.MINDAR) {
-          throw new Error('MindAR não disponível após verificação');
+        // Obter a API MindAR
+        const mindARAPI = getMindARAPI();
+        if (!mindARAPI) {
+          throw new Error('API MindAR não disponível');
         }
 
+        console.log('MindAR API disponível:', mindARAPI);
         console.log('Iniciando AR com modelo:', modelPath);
 
+        // Determinar qual API usar
+        const MindARThreeClass = mindARAPI.MindARThree || window.MindARThree;
+        
+        if (!MindARThreeClass) {
+          throw new Error('Classe MindARThree não encontrada');
+        }
+
         // Inicializar MindAR com o target.mind
-        const mindarThree = new window.MINDAR.MindARThree({
+        const mindarThree = new MindARThreeClass({
           container: containerRef.current,
           imageTargetSrc: '/targets/target.mind',
           uiScanning: true,
           uiLoading: true,
-          filterMinCF: 0.0001,           // Reduzir o valor mínimo do filtro de confiança
-          filterBeta: 10,                // Aumentar a suavização do filtro
-          warmupTolerance: 5,            // Aumentar a tolerância de aquecimento
-          missTolerance: 5,              // Aumentar a tolerância de perda
+          filterMinCF: 0.0001,
+          filterBeta: 10,
+          warmupTolerance: 5,
+          missTolerance: 5,
         });
 
         console.log('MindAR inicializado');
@@ -190,6 +198,14 @@ const ARViewer: React.FC<ARViewerProps> = ({ modelPath }) => {
     };
   }, [modelPath, isScriptLoaded, isScriptStarted]);
 
+  const handleRetry = () => {
+    // Recarregar apenas o componente
+    setIsLoading(true);
+    setError(null);
+    setIsScriptLoaded(false);
+    setIsScriptStarted(false);
+  };
+
   return (
     <div ref={containerRef} style={{ width: '100%', height: '100%', position: 'relative' }}>
       {isLoading && (
@@ -231,7 +247,7 @@ const ARViewer: React.FC<ARViewerProps> = ({ modelPath }) => {
             }}>
               <p style={{ margin: 0, color: '#ff6b6b' }}>{error}</p>
               <button
-                onClick={() => window.location.reload()}
+                onClick={handleRetry}
                 style={{
                   marginTop: '10px',
                   padding: '8px 16px',
