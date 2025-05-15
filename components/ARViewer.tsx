@@ -21,26 +21,37 @@ declare global {
 
 const ARViewer: React.FC<ARViewerProps> = ({ modelPath }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const scriptRef = useRef<HTMLScriptElement | null>(null);
+  const mindarThreeRef = useRef<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [startedAR, setStartedAR] = useState(false);
 
   useEffect(() => {
-    if (startedAR) return;
-
     const loadScript = () => {
       // Remover qualquer script antigo para evitar conflitos
       const oldScripts = document.querySelectorAll('script[src*="mind-ar"]');
       oldScripts.forEach(script => script.parentNode?.removeChild(script));
 
-      // Carregar o script MindAR
+      // Criar e carregar o novo script
       const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/npm/mind-ar@1.2.0/dist/mindar-image-three.prod.js';
+      script.src = 'https://cdn.jsdelivr.net/npm/mind-ar@1.1.4/dist/mindar-image-three.prod.js';
       script.async = true;
+      scriptRef.current = script;
       
       script.onload = () => {
-        console.log('Script MindAR carregado com sucesso');
-        startAR();
+        console.log('Script carregado. Verificando MINDAR:', window.MINDAR);
+        
+        // Aguardar um pouco para garantir que a biblioteca esteja inicializada
+        setTimeout(() => {
+          if (window.MINDAR && window.MINDAR.IMAGE) {
+            console.log('MindAR disponível. Iniciando AR...');
+            startAR();
+          } else {
+            console.error('MindAR não disponível após timeout:', window.MINDAR);
+            setError('Biblioteca MindAR não carregada corretamente');
+            setIsLoading(false);
+          }
+        }, 1000); // Aumentei para 1000ms para garantir mais tempo de inicialização
       };
       
       script.onerror = (e) => {
@@ -58,10 +69,6 @@ const ARViewer: React.FC<ARViewerProps> = ({ modelPath }) => {
           throw new Error('Container não disponível');
         }
 
-        if (!window.MINDAR || !window.MINDAR.IMAGE) {
-          throw new Error('Biblioteca MindAR não carregada corretamente');
-        }
-
         console.log('Iniciando AR com modelo:', modelPath);
 
         // Inicializar MindAR
@@ -69,10 +76,12 @@ const ARViewer: React.FC<ARViewerProps> = ({ modelPath }) => {
           container: containerRef.current,
           imageTargetSrc: '/targets/target.mind',
           uiScanning: true,
-          uiLoading: true
+          uiLoading: true,
+          maxTrack: 1
         });
 
         console.log('MindAR inicializado');
+        mindarThreeRef.current = mindarThree;
 
         const { renderer, scene, camera } = mindarThree;
 
@@ -102,7 +111,6 @@ const ARViewer: React.FC<ARViewerProps> = ({ modelPath }) => {
             anchor.group.add(model);
 
             setIsLoading(false);
-            setStartedAR(true);
           },
           (progress) => {
             console.log('Progresso do carregamento:', (progress.loaded / progress.total * 100).toFixed(2) + '%');
@@ -125,13 +133,6 @@ const ARViewer: React.FC<ARViewerProps> = ({ modelPath }) => {
           renderer.render(scene, camera);
         });
 
-        // Cleanup function para parar AR ao desmontar
-        return () => {
-          console.log('Parando experiência AR');
-          mindarThree.stop();
-          renderer.setAnimationLoop(null);
-        };
-
       } catch (err) {
         console.error('Erro ao iniciar AR:', err);
         setError(`Falha ao iniciar a experiência AR: ${err instanceof Error ? err.message : String(err)}`);
@@ -139,8 +140,21 @@ const ARViewer: React.FC<ARViewerProps> = ({ modelPath }) => {
       }
     };
 
+    // Carregar o script
     loadScript();
-  }, [modelPath, startedAR]);
+
+    // Limpeza ao desmontar o componente
+    return () => {
+      if (scriptRef.current && document.body.contains(scriptRef.current)) {
+        document.body.removeChild(scriptRef.current);
+      }
+      
+      if (mindarThreeRef.current) {
+        console.log('Parando experiência AR');
+        mindarThreeRef.current.stop();
+      }
+    };
+  }, [modelPath]);
 
   return (
     <div ref={containerRef} style={{ width: '100%', height: '100%', position: 'relative' }}>
