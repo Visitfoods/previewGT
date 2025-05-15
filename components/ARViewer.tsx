@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import { MindARThree } from 'mind-ar';
+import { MindARThree } from '@mind-ar/web';
 
 interface ARViewerProps {
   modelPath: string;
