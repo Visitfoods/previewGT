@@ -3,7 +3,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import Script from 'next/script';
 
 interface ARViewerProps {
   modelPath: string;
@@ -49,6 +48,38 @@ const ARViewer: React.FC<ARViewerProps> = ({ modelPath }) => {
       check();
     });
   };
+
+  // Carregar o script MindAR manualmente
+  useEffect(() => {
+    if (isScriptLoaded) return;
+
+    const loadMindARScript = () => {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-three.prod.js';
+      script.async = true;
+      script.type = 'module'; // Definir como módulo ES
+      
+      script.onload = () => {
+        console.log('Script MindAR carregado manualmente');
+        setIsScriptLoaded(true);
+      };
+      
+      script.onerror = (e) => {
+        console.error('Erro ao carregar script MindAR:', e);
+        setError('Falha ao carregar biblioteca AR');
+      };
+      
+      document.body.appendChild(script);
+    };
+    
+    loadMindARScript();
+    
+    return () => {
+      // Limpar scripts ao desmontar o componente
+      const scripts = document.querySelectorAll('script[src*="mind-ar"]');
+      scripts.forEach(script => document.body.removeChild(script));
+    };
+  }, []);
 
   useEffect(() => {
     const startAR = async () => {
@@ -160,81 +191,70 @@ const ARViewer: React.FC<ARViewerProps> = ({ modelPath }) => {
   }, [modelPath, isScriptLoaded, isScriptStarted]);
 
   return (
-    <>
-      <Script 
-        src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js"
-        strategy="afterInteractive"
-        onLoad={() => {
-          console.log('Script MindAR carregado');
-          setIsScriptLoaded(true);
-        }}
-        onError={(e) => {
-          console.error('Erro ao carregar script MindAR:', e);
-          setError('Falha ao carregar biblioteca AR');
-        }}
-      />
-
-      <div ref={containerRef} style={{ width: '100%', height: '100%', position: 'relative' }}>
-        {isLoading && (
+    <div ref={containerRef} style={{ width: '100%', height: '100%', position: 'relative' }}>
+      {isLoading && (
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          color: 'white',
+          zIndex: 1000
+        }}>
           <div style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'center',
-            backgroundColor: 'rgba(0, 0, 0, 0.7)',
-            color: 'white',
-            zIndex: 1000
-          }}>
+            width: '50px',
+            height: '50px',
+            border: '5px solid #f3f3f3',
+            borderTop: '5px solid #4CAF50',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite',
+            marginBottom: '20px'
+          }} />
+          <p>A carregar experiência AR...</p>
+          <p style={{ fontSize: '14px', color: '#aaa', marginTop: '5px' }}>
+            Certifique-se de permitir o acesso à câmara quando solicitado.
+          </p>
+          {error && (
             <div style={{
-              width: '50px',
-              height: '50px',
-              border: '5px solid #f3f3f3',
-              borderTop: '5px solid #4CAF50',
-              borderRadius: '50%',
-              animation: 'spin 1s linear infinite',
-              marginBottom: '20px'
-            }} />
-            <p>A carregar experiência AR...</p>
-            {error && (
-              <div style={{
-                marginTop: '10px',
-                padding: '10px',
-                backgroundColor: 'rgba(255, 0, 0, 0.2)',
-                borderRadius: '5px',
-                textAlign: 'center'
-              }}>
-                <p style={{ margin: 0, color: '#ff6b6b' }}>{error}</p>
-                <button
-                  onClick={() => window.location.reload()}
-                  style={{
-                    marginTop: '10px',
-                    padding: '8px 16px',
-                    backgroundColor: '#4CAF50',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Tentar novamente
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-        <style jsx>{`
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-        `}</style>
-      </div>
-    </>
+              marginTop: '10px',
+              padding: '10px',
+              backgroundColor: 'rgba(255, 0, 0, 0.2)',
+              borderRadius: '5px',
+              textAlign: 'center',
+              maxWidth: '80%'
+            }}>
+              <p style={{ margin: 0, color: '#ff6b6b' }}>{error}</p>
+              <button
+                onClick={() => window.location.reload()}
+                style={{
+                  marginTop: '10px',
+                  padding: '8px 16px',
+                  backgroundColor: '#4CAF50',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                Tentar novamente
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+      <style jsx>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
+    </div>
   );
 };
 
