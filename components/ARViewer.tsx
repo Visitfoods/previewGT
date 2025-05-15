@@ -2,343 +2,125 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { SplatLoader } from '@mkkellogg/gaussian-splats-3d';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { MindARThree } from 'mind-ar-js';
 
 interface ARViewerProps {
   modelPath: string;
 }
 
-// Versão simplificada que apenas mostra o modelo 3D sem AR
-const ARViewer: React.FC<ARViewerProps> = ({ 
-  modelPath = '/models/3dgelato.ply'
-}) => {
+const ARViewer: React.FC<ARViewerProps> = ({ modelPath }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
-  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
-  const controlsRef = useRef<OrbitControls | null>(null);
-  const splatRef = useRef<any>(null);
-  const animationFrameRef = useRef<number | null>(null);
-  
+  const mindarThreeRef = useRef<any>(null);
+  const modelRef = useRef<THREE.Object3D | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isLowPerformance, setIsLowPerformance] = useState(false);
-
-  // Detetar dispositivos de baixa capacidade
-  useEffect(() => {
-    const detectLowPerformance = () => {
-      // Verificar se é um dispositivo móvel
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-      
-      // Verificar a quantidade de RAM disponível (quando suportado)
-      const lowMemory = 'deviceMemory' in navigator && (navigator as any).deviceMemory < 4;
-      
-      // Verificar a quantidade de núcleos de CPU (quando suportado)
-      const lowCPU = 'hardwareConcurrency' in navigator && navigator.hardwareConcurrency < 4;
-      
-      // Verificar se o navegador suporta WebGL2
-      const canvas = document.createElement('canvas');
-      const hasWebGL2 = !!window.WebGL2RenderingContext && !!canvas.getContext('webgl2');
-      
-      return isMobile || lowMemory || lowCPU || !hasWebGL2;
-    };
-    
-    setIsLowPerformance(detectLowPerformance());
-  }, []);
 
   useEffect(() => {
-    if (!containerRef.current || typeof window === 'undefined') return;
-
-    // Função para inicializar visualizador 3D
-    const initViewer = async () => {
+    const startAR = async () => {
       try {
-        setIsLoading(true);
-        
-        // Garantir que o containerRef.current não é null
         if (!containerRef.current) return;
-        
-        // Criar cena, câmara e renderer
-        const container = containerRef.current;
-        const width = container.clientWidth;
-        const height = container.clientHeight;
 
-        const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0xf0f0f0);
+        // Inicializar MindAR com o target.mind
+        const mindarThree = new MindARThree({
+          container: containerRef.current,
+          imageTargetSrc: '/targets/target.mind',
+          uiScanning: true,
+          uiLoading: true,
+        });
+
+        const { renderer, scene, camera } = mindarThree;
         sceneRef.current = scene;
 
-        const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
-        camera.position.z = 3;
-        cameraRef.current = camera;
-
-        // Configurar o renderer com base no desempenho do dispositivo
-        const renderer = new THREE.WebGLRenderer({ 
-          antialias: !isLowPerformance, // Desativar antialias em dispositivos de baixa capacidade
-          powerPreference: isLowPerformance ? 'low-power' : 'high-performance'
-        });
-        
-        // Reduzir a resolução em dispositivos de baixa capacidade
-        const pixelRatio = isLowPerformance ? Math.min(1.0, window.devicePixelRatio) : window.devicePixelRatio;
-        renderer.setPixelRatio(pixelRatio);
-        renderer.setSize(width, height);
-        
-        container.appendChild(renderer.domElement);
-        rendererRef.current = renderer;
-
-        // Adicionar controles de órbita
-        const controls = new OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = !isLowPerformance; // Desativar amortecimento em dispositivos de baixa capacidade
-        controls.dampingFactor = 0.25;
-        controls.autoRotate = false;
-        controls.autoRotateSpeed = 0.5;
-        controls.rotateSpeed = isLowPerformance ? 0.5 : 1.0; // Reduzir a velocidade de rotação
-        controls.enableZoom = true;
-        controls.minDistance = 1.5;
-        controls.maxDistance = 10;
-        controlsRef.current = controls;
-
-        // Adicionar luz ambiente
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+        // Configurar iluminação
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
         scene.add(ambientLight);
-        
-        // Carregar o modelo Gaussian Splat
-        console.log(`Carregando modelo: ${modelPath}`);
-        const loader = new SplatLoader();
-        const splat = await loader.loadAsync(modelPath);
-        
-        if (splat) {
-          // Ajustar escala e posição do splat para o modelo específico
-          splat.scale.set(0.03, 0.03, 0.03); // Ajuste para o 3dgelato.ply
-          splat.position.set(0, -0.2, 0); // Ajustar para posicionar corretamente
-          
-          // Girar o modelo conforme necessário
-          splat.rotation.x = -Math.PI / 8; // Ligeira inclinação para cima
-          
-          // Se for um dispositivo de baixa capacidade, reduza a escala do modelo
-          if (isLowPerformance && splat.userData && splat.userData.splatScale) {
-            // Reduzir a escala do splat para melhorar o desempenho
-            splat.userData.splatScale *= 0.8;
-          }
-          
-          scene.add(splat);
-          splatRef.current = splat;
-          
-          // Ajustar a câmara para enquadrar o modelo
-          const box = new THREE.Box3().setFromObject(splat);
-          const center = new THREE.Vector3();
-          box.getCenter(center);
-          
-          const size = new THREE.Vector3();
-          box.getSize(size);
-          
-          const maxDim = Math.max(size.x, size.y, size.z);
-          const fov = camera.fov * (Math.PI / 180);
-          const cameraDistance = maxDim / (2 * Math.tan(fov / 2));
-          
-          camera.position.copy(center);
-          camera.position.z += cameraDistance * 1.5;
-          camera.lookAt(center);
-          
-          controls.target.copy(center);
-          controls.update();
-        }
-        
-        // Variável para controlar o framerate
-        let lastTime = 0;
-        const targetFPS = isLowPerformance ? 30 : 60;
-        const frameInterval = 1000 / targetFPS;
-        
-        // Função de animação otimizada
-        const animate = (time: number) => {
-          animationFrameRef.current = requestAnimationFrame(animate);
-          
-          // Limitar o framerate em dispositivos de baixa capacidade
-          const delta = time - lastTime;
-          if (delta < frameInterval && isLowPerformance) return;
-          
-          lastTime = time - (delta % frameInterval);
-          
-          if (controlsRef.current) {
-            controlsRef.current.update();
-          }
-          
-          if (rendererRef.current && sceneRef.current && cameraRef.current) {
-            rendererRef.current.render(sceneRef.current, cameraRef.current);
-          }
-        };
 
-        animationFrameRef.current = requestAnimationFrame(animate);
-        
-        setIsLoading(false);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+        directionalLight.position.set(0, 10, 0);
+        scene.add(directionalLight);
+
+        // Carregar o modelo GLB
+        const loader = new GLTFLoader();
+        loader.load(
+          modelPath,
+          (gltf) => {
+            const model = gltf.scene;
+            model.scale.set(0.1, 0.1, 0.1); // Ajustar escala conforme necessário
+            model.position.set(0, 0, 0);
+            model.rotation.x = -Math.PI / 2;
+
+            // Adicionar o modelo ao anchor do MindAR
+            const anchor = mindarThree.addAnchor(0);
+            anchor.group.add(model);
+            modelRef.current = model;
+
+            setIsLoading(false);
+          },
+          undefined,
+          (error) => {
+            console.error('Erro ao carregar modelo:', error);
+            setError('Falha ao carregar o modelo 3D');
+            setIsLoading(false);
+          }
+        );
+
+        // Iniciar experiência AR
+        await mindarThree.start();
+        mindarThreeRef.current = mindarThree;
+
+        // Função de renderização
+        renderer.setAnimationLoop(() => {
+          if (modelRef.current) {
+            modelRef.current.rotation.z += 0.005; // Rotação suave do modelo
+          }
+          renderer.render(scene, camera);
+        });
+
       } catch (err) {
-        console.error('Erro ao inicializar visualizador 3D:', err);
-        setError('Não foi possível inicializar o visualizador 3D.');
+        console.error('Erro ao iniciar AR:', err);
+        setError('Falha ao iniciar a experiência AR');
         setIsLoading(false);
       }
     };
 
-    initViewer();
-
-    // Ajustar tamanho ao redimensionar a janela - com debounce para melhorar desempenho
-    let resizeTimeout: NodeJS.Timeout;
-    const handleResize = () => {
-      clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(() => {
-        if (!containerRef.current || !rendererRef.current) return;
-        
-        const width = containerRef.current.clientWidth;
-        const height = containerRef.current.clientHeight;
-        
-        if (cameraRef.current) {
-          cameraRef.current.aspect = width / height;
-          cameraRef.current.updateProjectionMatrix();
-        }
-        
-        rendererRef.current.setSize(width, height);
-      }, 250);
-    };
-
-    window.addEventListener('resize', handleResize);
-    
-    // Otimizar para desempenho em dispositivos móveis
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        // Pausa a renderização quando a página não está visível
-        if (animationFrameRef.current !== null) {
-          cancelAnimationFrame(animationFrameRef.current);
-          animationFrameRef.current = null;
-        }
-      } else {
-        // Reinicia a renderização quando a página fica visível novamente
-        if (animationFrameRef.current === null && rendererRef.current) {
-          animationFrameRef.current = requestAnimationFrame(function animate(time) {
-            animationFrameRef.current = requestAnimationFrame(animate);
-            
-            if (controlsRef.current) {
-              controlsRef.current.update();
-            }
-            
-            if (rendererRef.current && sceneRef.current && cameraRef.current) {
-              rendererRef.current.render(sceneRef.current, cameraRef.current);
-            }
-          });
-        }
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    startAR();
 
     // Cleanup
     return () => {
-      window.removeEventListener('resize', handleResize);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      
-      if (animationFrameRef.current !== null) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
-      
-      if (rendererRef.current && rendererRef.current.domElement && containerRef.current) {
-        containerRef.current.removeChild(rendererRef.current.domElement);
-      }
-      
-      if (rendererRef.current) {
-        rendererRef.current.dispose();
-      }
-      
-      if (controlsRef.current) {
-        controlsRef.current.dispose();
+      if (mindarThreeRef.current) {
+        mindarThreeRef.current.stop();
       }
     };
-  }, [modelPath, isLowPerformance]);
+  }, [modelPath]);
 
   return (
-    <div className="ar-viewer-container">
+    <div ref={containerRef} style={{ width: '100%', height: '100%' }}>
       {isLoading && (
-        <div className="loading-overlay">
-          <div className="spinner"></div>
-          <p>A carregar o modelo 3D...</p>
+        <div className="loading">
+          A carregar experiência AR...
         </div>
       )}
-      
       {error && (
-        <div className="error-overlay">
-          <p>{error}</p>
-          <button onClick={() => window.location.reload()}>Tentar novamente</button>
+        <div className="error">
+          {error}
         </div>
       )}
-      
-      <div ref={containerRef} className="ar-container" />
-      
-      {isLowPerformance && !isLoading && !error && (
-        <div className="performance-notice">
-          <p>Modo de desempenho otimizado ativado</p>
-        </div>
-      )}
-      
       <style jsx>{`
-        .ar-viewer-container {
-          position: relative;
-          width: 100%;
-          height: 70vh;
-          min-height: 300px;
-          overflow: hidden;
+        .loading, .error {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          background: rgba(0, 0, 0, 0.7);
+          color: white;
+          padding: 20px;
           border-radius: 8px;
+          text-align: center;
         }
-        
-        .ar-container {
-          width: 100%;
-          height: 100%;
-        }
-        
-        .loading-overlay, .error-overlay {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
-          background-color: rgba(0, 0, 0, 0.7);
-          color: white;
-          z-index: 10;
-        }
-        
-        .performance-notice {
-          position: absolute;
-          bottom: 10px;
-          right: 10px;
-          background-color: rgba(0, 0, 0, 0.5);
-          color: white;
-          padding: 4px 8px;
-          border-radius: 4px;
-          font-size: 12px;
-          z-index: 5;
-        }
-        
-        .spinner {
-          width: 40px;
-          height: 40px;
-          border: 4px solid rgba(255, 255, 255, 0.3);
-          border-radius: 50%;
-          border-top-color: white;
-          animation: spin 1s ease-in-out infinite;
-          margin-bottom: 10px;
-        }
-        
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-        
-        button {
-          margin-top: 10px;
-          padding: 8px 16px;
-          background-color: #4CAF50;
-          color: white;
-          border: none;
-          border-radius: 4px;
-          cursor: pointer;
+        .error {
+          background: rgba(255, 0, 0, 0.7);
         }
       `}</style>
     </div>
@@ -346,3 +128,4 @@ const ARViewer: React.FC<ARViewerProps> = ({
 };
 
 export default ARViewer;
+ 

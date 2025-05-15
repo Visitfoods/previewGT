@@ -11,14 +11,14 @@ export const availableModels: Model3D[] = [
   {
     id: 'gelado-tradicional',
     name: 'Gelado Tradicional',
-    path: '/models/Gelado 3D_SUPERSPLAT.compressed.ply',
+    path: '/models/GELATI.glb',
     description: 'Modelo 3D de um gelado tradicional de cone',
     thumbnail: '/imagetrace/card.png'
   },
   {
     id: 'gelato-3d',
     name: 'Gelato 3D',
-    path: '/models/3dgelato.ply',
+    path: '/models/GELATI.glb',
     description: 'Modelo 3D Gaussian Splat de gelato com detalhes realistas',
     thumbnail: '/imagetrace/card.png'
   }
@@ -31,4 +31,4 @@ export const getModelById = (id: string): Model3D | undefined => {
 };
 
 // Modelo padrão para usar quando nenhum é especificado
-export const defaultModel = availableModels[1]; // Usar o gelato-3d como padrão 
+export const defaultModel = availableModels[0]; // Usar o gelado-tradicional como padrão 

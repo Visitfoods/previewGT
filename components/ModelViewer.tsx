@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { SplatLoader } from '@mkkellogg/gaussian-splats-3d';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { trackEvent, measureFPS, useAnalytics } from './Analytics';
 
 interface ModelViewerProps {
@@ -119,42 +119,28 @@ const ModelViewer: React.FC<ModelViewerProps> = ({ modelPath }) => {
     controls.addEventListener('end', () => trackInteraction('controlsEnd'));
     controls.addEventListener('change', () => trackInteraction('controlsChange'));
 
-    // Carregar o modelo Gaussian Splat
+    // Carregar o modelo GLTF
     const loadModel = async () => {
       try {
         setIsLoading(true);
-        
-        // Verificar se o caminho do modelo existe
         console.log("Tentando carregar modelo:", modelPath);
-        
-        try {
-          // Tentar carregar com SplatLoader
-          const loader = new SplatLoader();
-          
-          try {
-            // Tentar carregar o modelo
-            console.log('Tentando loadAsync para carregar o modelo');
-            const splat = await loader.loadAsync(modelPath);
-            handleLoadedModel(splat);
-          } catch (loadAsyncError) {
-            console.error('Erro loadAsync:', loadAsyncError);
-            
-            // Criar um objeto 3D simples como fallback
+        const loader = new GLTFLoader();
+        loader.load(
+          modelPath,
+          (gltf) => {
+            const object = gltf.scene;
+            handleLoadedModel(object);
+          },
+          undefined,
+          (error) => {
+            console.error('Erro ao carregar GLB:', error);
             createFallbackObject();
           }
-        } catch (loaderError) {
-          console.error('Erro ao criar loader:', loaderError);
-          
-          // Criar um objeto 3D simples como fallback
-          createFallbackObject();
-        }
-        
+        );
       } catch (err) {
         console.error('Erro ao carregar o modelo:', err);
         setError('Não foi possível carregar o modelo 3D.');
         setIsLoading(false);
-        
-        // Rastrear erro de carregamento
         trackEvent('error', 'modelLoadError', { 
           modelPath, 
           error: err instanceof Error ? err.message : String(err)
