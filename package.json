@@ -14,7 +14,7 @@
     "react-dom": "^18.2.0",
     "three": "^0.160.0",
     "qr-scanner": "^1.4.2",
-    "mind-ar-js": "^1.2.3"
+    "mind-ar": "^1.2.5"
   },
   "devDependencies": {
     "@types/node": "^20.8.0",
