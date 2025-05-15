@@ -8,120 +8,73 @@ interface ARViewerProps {
   modelPath: string;
 }
 
+// Declaração para o objeto global Window
 declare global {
   interface Window {
-    MINDAR: any;
-    MindARThree: any; // Alternativa para versões mais antigas
-    mindar: any; // Outra possível alternativa
+    MINDAR: {
+      IMAGE: {
+        Three: any;
+      };
+    };
   }
 }
 
 const ARViewer: React.FC<ARViewerProps> = ({ modelPath }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const sceneRef = useRef<THREE.Scene | null>(null);
-  const mindarThreeRef = useRef<any>(null);
-  const modelRef = useRef<THREE.Object3D | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isScriptLoaded, setIsScriptLoaded] = useState(false);
-  const [isScriptStarted, setIsScriptStarted] = useState(false);
+  const [startedAR, setStartedAR] = useState(false);
 
-  // Carregar o script MindAR manualmente
   useEffect(() => {
-    if (isScriptLoaded) return;
+    if (startedAR) return;
 
-    const loadMindARScript = () => {
-      // Remover qualquer script anterior para evitar conflitos
+    const loadScript = () => {
+      // Remover qualquer script antigo para evitar conflitos
       const oldScripts = document.querySelectorAll('script[src*="mind-ar"]');
       oldScripts.forEach(script => script.parentNode?.removeChild(script));
 
-      // Carregar versão UMD da biblioteca (não módulo)
+      // Carregar o script MindAR
       const script = document.createElement('script');
       script.src = 'https://cdn.jsdelivr.net/npm/mind-ar@1.2.0/dist/mindar-image-three.prod.js';
       script.async = true;
       
       script.onload = () => {
-        console.log('Script MindAR carregado manualmente');
-        
-        // Verificar se o objeto global MINDAR foi criado
-        if (window.MINDAR || window.MindARThree || window.mindar) {
-          console.log('Objeto MINDAR encontrado em:', {
-            MINDAR: !!window.MINDAR,
-            MindARThree: !!window.MindARThree,
-            mindar: !!window.mindar
-          });
-          setIsScriptLoaded(true);
-        } else {
-          console.error('Script carregado mas MINDAR não encontrado na window');
-          setError('Biblioteca AR carregada mas não inicializada corretamente');
-        }
+        console.log('Script MindAR carregado com sucesso');
+        startAR();
       };
       
       script.onerror = (e) => {
         console.error('Erro ao carregar script MindAR:', e);
-        setError('Falha ao carregar biblioteca AR');
+        setError('Falha ao carregar biblioteca AR. Verifica a tua conexão à internet.');
+        setIsLoading(false);
       };
       
       document.body.appendChild(script);
     };
-    
-    loadMindARScript();
-    
-    return () => {
-      // Limpar scripts ao desmontar o componente
-      const scripts = document.querySelectorAll('script[src*="mind-ar"]');
-      scripts.forEach(script => script.parentNode?.removeChild(script));
-    };
-  }, []);
 
-  // Função para obter a API MindAR independentemente de onde ela esteja disponível
-  const getMindARAPI = () => {
-    if (window.MINDAR) return window.MINDAR;
-    if (window.MindARThree) return { MindARThree: window.MindARThree };
-    if (window.mindar) return window.mindar;
-    return null;
-  };
-
-  useEffect(() => {
     const startAR = async () => {
       try {
         if (!containerRef.current) {
-          console.log('Container não disponível');
-          return;
+          throw new Error('Container não disponível');
         }
 
-        // Obter a API MindAR
-        const mindARAPI = getMindARAPI();
-        if (!mindARAPI) {
-          throw new Error('API MindAR não disponível');
+        if (!window.MINDAR || !window.MINDAR.IMAGE) {
+          throw new Error('Biblioteca MindAR não carregada corretamente');
         }
 
-        console.log('MindAR API disponível:', mindARAPI);
         console.log('Iniciando AR com modelo:', modelPath);
 
-        // Determinar qual API usar
-        const MindARThreeClass = mindARAPI.MindARThree || window.MindARThree;
-        
-        if (!MindARThreeClass) {
-          throw new Error('Classe MindARThree não encontrada');
-        }
-
-        // Inicializar MindAR com o target.mind
-        const mindarThree = new MindARThreeClass({
+        // Inicializar MindAR
+        const mindarThree = new window.MINDAR.IMAGE.Three({
           container: containerRef.current,
           imageTargetSrc: '/targets/target.mind',
           uiScanning: true,
-          uiLoading: true,
-          filterMinCF: 0.0001,
-          filterBeta: 10,
-          warmupTolerance: 5,
-          missTolerance: 5,
+          uiLoading: true
         });
 
         console.log('MindAR inicializado');
 
         const { renderer, scene, camera } = mindarThree;
-        sceneRef.current = scene;
 
         // Configurar iluminação
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
@@ -147,17 +100,16 @@ const ARViewer: React.FC<ARViewerProps> = ({ modelPath }) => {
             // Adicionar o modelo ao anchor do MindAR
             const anchor = mindarThree.addAnchor(0);
             anchor.group.add(model);
-            modelRef.current = model;
 
             setIsLoading(false);
-            setIsScriptStarted(true);
+            setStartedAR(true);
           },
           (progress) => {
             console.log('Progresso do carregamento:', (progress.loaded / progress.total * 100).toFixed(2) + '%');
           },
           (error) => {
             console.error('Erro ao carregar modelo:', error);
-            setError('Falha ao carregar o modelo 3D');
+            setError('Falha ao carregar o modelo 3D. Verifica se o caminho está correto.');
             setIsLoading(false);
           }
         );
@@ -166,17 +118,19 @@ const ARViewer: React.FC<ARViewerProps> = ({ modelPath }) => {
 
         // Iniciar experiência AR
         await mindarThree.start();
-        mindarThreeRef.current = mindarThree;
-
         console.log('Experiência AR iniciada com sucesso');
 
         // Função de renderização
         renderer.setAnimationLoop(() => {
-          if (modelRef.current) {
-            modelRef.current.rotation.z += 0.005;
-          }
           renderer.render(scene, camera);
         });
+
+        // Cleanup function para parar AR ao desmontar
+        return () => {
+          console.log('Parando experiência AR');
+          mindarThree.stop();
+          renderer.setAnimationLoop(null);
+        };
 
       } catch (err) {
         console.error('Erro ao iniciar AR:', err);
@@ -185,26 +139,8 @@ const ARViewer: React.FC<ARViewerProps> = ({ modelPath }) => {
       }
     };
 
-    if (isScriptLoaded && !isScriptStarted) {
-      console.log('Script MindAR carregado, iniciando AR');
-      startAR();
-    }
-
-    return () => {
-      if (mindarThreeRef.current) {
-        console.log('Parando experiência AR');
-        mindarThreeRef.current.stop();
-      }
-    };
-  }, [modelPath, isScriptLoaded, isScriptStarted]);
-
-  const handleRetry = () => {
-    // Recarregar apenas o componente
-    setIsLoading(true);
-    setError(null);
-    setIsScriptLoaded(false);
-    setIsScriptStarted(false);
-  };
+    loadScript();
+  }, [modelPath, startedAR]);
 
   return (
     <div ref={containerRef} style={{ width: '100%', height: '100%', position: 'relative' }}>
@@ -234,7 +170,7 @@ const ARViewer: React.FC<ARViewerProps> = ({ modelPath }) => {
           }} />
           <p>A carregar experiência AR...</p>
           <p style={{ fontSize: '14px', color: '#aaa', marginTop: '5px' }}>
-            Certifique-se de permitir o acesso à câmara quando solicitado.
+            Certifica-te de permitir o acesso à câmara quando solicitado.
           </p>
           {error && (
             <div style={{
@@ -247,7 +183,7 @@ const ARViewer: React.FC<ARViewerProps> = ({ modelPath }) => {
             }}>
               <p style={{ margin: 0, color: '#ff6b6b' }}>{error}</p>
               <button
-                onClick={handleRetry}
+                onClick={() => window.location.reload()}
                 style={{
                   marginTop: '10px',
                   padding: '8px 16px',

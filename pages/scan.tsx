@@ -3,13 +3,13 @@
 import React from 'react';
 import Link from 'next/link';
 import Head from 'next/head';
-import ARViewer from '../components/ARViewer';
+import QRScanner from '../components/QRScanner';
 
-const ARPage: React.FC = () => {
+const ScanPage: React.FC = () => {
   return (
     <>
       <Head>
-        <title>Gelatomania AR</title>
+        <title>Scanner QR | Gelatomania AR</title>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="mobile-web-app-capable" content="yes" />
@@ -20,12 +20,12 @@ const ARPage: React.FC = () => {
           <Link href="/">
             <span className="back-link">← Voltar</span>
           </Link>
-          <h1>Realidade Aumentada</h1>
+          <h1>Escanear QR Code</h1>
         </header>
 
         <main>
-          <div className="ar-content">
-            <ARViewer modelPath="/models/GELATI.glb" />
+          <div className="scanner-content">
+            <QRScanner />
           </div>
         </main>
       </div>
@@ -41,6 +41,14 @@ const ARPage: React.FC = () => {
           margin-bottom: 20px;
           display: flex;
           align-items: center;
+          background-color: rgba(255, 255, 255, 0.9);
+          padding: 10px;
+          border-radius: 8px;
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          z-index: 100;
         }
 
         .back-link {
@@ -48,24 +56,27 @@ const ARPage: React.FC = () => {
           text-decoration: none;
           cursor: pointer;
           margin-right: 20px;
+          font-weight: bold;
         }
 
         h1 {
           margin: 0;
           color: #333;
+          font-size: 18px;
         }
 
-        .ar-content {
+        .scanner-content {
           width: 100%;
-          height: calc(100vh - 150px);
-          min-height: 400px;
-          border-radius: 8px;
-          overflow: hidden;
-          position: relative;
+          height: 100vh;
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
         }
       `}</style>
     </>
   );
 };
 
-export default ARPage; 
+export default ScanPage; 

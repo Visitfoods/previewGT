@@ -11,7 +11,7 @@ const Home: React.FC = () => {
       <Head>
         <title>Gelatomania AR</title>
         <meta name="description" content="Visualize gelados em realidade aumentada" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="mobile-web-app-capable" content="yes" />
       </Head>
@@ -35,13 +35,13 @@ const Home: React.FC = () => {
             </div>
             
             <div className="info">
-              <p>Use esta imagem para ver o gelado em realidade aumentada</p>
+              <p>Use esta imagem como referência para ver o gelado em realidade aumentada</p>
               <div className="buttons">
+                <Link href="/scan" className="button scan-button">
+                  Escanear QR Code
+                </Link>
                 <Link href="/ar" className="button ar-button">
                   Iniciar Experiência AR
-                </Link>
-                <Link href="/produto/gelato-3d" className="button view-button">
-                  Ver Modelo 3D
                 </Link>
               </div>
             </div>
@@ -50,7 +50,7 @@ const Home: React.FC = () => {
           <div className="instructions">
             <h2>Como utilizar:</h2>
             <ol>
-              <li>Clique em "Iniciar Experiência AR"</li>
+              <li>Clique em "Escanear QR Code" ou "Iniciar Experiência AR"</li>
               <li>Permita o acesso à câmara quando solicitado</li>
               <li>Aponte a câmara para a imagem acima</li>
               <li>O modelo 3D do gelado aparecerá sobre a imagem</li>
@@ -151,13 +151,13 @@ const Home: React.FC = () => {
           transform: translateY(1px);
         }
         
-        .ar-button {
-          background-color: #4CAF50;
+        .scan-button {
+          background-color: #2196F3;
           color: white;
         }
         
-        .view-button {
-          background-color: #2196F3;
+        .ar-button {
+          background-color: #4CAF50;
           color: white;
         }
         
