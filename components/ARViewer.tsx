@@ -3,10 +3,16 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import { MindARThree } from '@mind-ar/web';
+import Script from 'next/script';
 
 interface ARViewerProps {
   modelPath: string;
+}
+
+declare global {
+  interface Window {
+    MINDAR: any;
+  }
 }
 
 const ARViewer: React.FC<ARViewerProps> = ({ modelPath }) => {
@@ -20,10 +26,10 @@ const ARViewer: React.FC<ARViewerProps> = ({ modelPath }) => {
   useEffect(() => {
     const startAR = async () => {
       try {
-        if (!containerRef.current) return;
+        if (!containerRef.current || !window.MINDAR) return;
 
         // Inicializar MindAR com o target.mind
-        const mindarThree = new MindARThree({
+        const mindarThree = new window.MINDAR.MindARThree({
           container: containerRef.current,
           imageTargetSrc: '/targets/target.mind',
           uiScanning: true,
@@ -85,7 +91,9 @@ const ARViewer: React.FC<ARViewerProps> = ({ modelPath }) => {
       }
     };
 
-    startAR();
+    if (window.MINDAR) {
+      startAR();
+    }
 
     // Cleanup
     return () => {
@@ -96,34 +104,41 @@ const ARViewer: React.FC<ARViewerProps> = ({ modelPath }) => {
   }, [modelPath]);
 
   return (
-    <div ref={containerRef} style={{ width: '100%', height: '100%' }}>
-      {isLoading && (
-        <div className="loading">
-          A carregar experiência AR...
-        </div>
-      )}
-      {error && (
-        <div className="error">
-          {error}
-        </div>
-      )}
-      <style jsx>{`
-        .loading, .error {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          background: rgba(0, 0, 0, 0.7);
-          color: white;
-          padding: 20px;
-          border-radius: 8px;
-          text-align: center;
-        }
-        .error {
-          background: rgba(255, 0, 0, 0.7);
-        }
-      `}</style>
-    </div>
+    <>
+      <Script 
+        src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js"
+        strategy="beforeInteractive"
+        onLoad={() => console.log('MindAR carregado')}
+      />
+      <div ref={containerRef} style={{ width: '100%', height: '100%' }}>
+        {isLoading && (
+          <div className="loading">
+            A carregar experiência AR...
+          </div>
+        )}
+        {error && (
+          <div className="error">
+            {error}
+          </div>
+        )}
+        <style jsx>{`
+          .loading, .error {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+          }
+          .error {
+            background: rgba(255, 0, 0, 0.7);
+          }
+        `}</style>
+      </div>
+    </>
   );
 };
 
