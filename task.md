@@ -21,6 +21,7 @@ Criar uma webapp simples e funcional com visualização 3D e realidade aumentada
 - [x] Simplificar a página AR para melhor desempenho
 - [x] Criar uma página de visualização 3D dedicada
 - [x] Melhorar a acessibilidade e compatibilidade com dispositivos móveis
+- [x] Integrar visualização de ficheiro .splat (Gaussian Splatting) com aframe-gaussian-splatting na página produto/gelato-splat.tsx
 
 ## Estrutura da Aplicação
 - Página inicial com acesso direto ao AR
